@@ -1,6 +1,6 @@
 # RetailForecast AI
 
-A local-first retail forecasting application in development. **Phase 6 adds a shared cutoff-safe feature builder, generated feature registry and persisted training preprocessing.** The web app still shows API connection health only. Model training, forecasts, charts, scheduling and MLflow integration are not implemented. Historical 2015 records are not live data.
+A local-first retail forecasting application in development. **Phase 7 adds deterministic forecasting baselines and rolling-origin evaluation to the cutoff-safe feature and data foundation.** The web app still shows API connection health only. Advanced model training, interactive forecast serving, charts, scheduling and MLflow integration are not implemented. Baseline forecasts exist only as offline evaluation artifacts. Historical 2015 records are not live data.
 
 ## Required tools
 
@@ -133,3 +133,14 @@ uv run --locked python -m retailforecast.features.registry --check
 ```
 
 Target plans are unknown unless explicitly supplied as known at cutoff. Customers never enter V1 predictors. This phase does not train an estimator or add forecast pages/endpoints.
+
+## Phase 7 — Honest baseline backtests
+
+[MODEL_STRATEGY.md](docs/MODEL_STRATEGY.md) explains the three baselines, rolling-origin windows, zero-sales scoring, common coverage and locked final holdout.
+
+```text
+uv run --locked python -m retailforecast.evaluation.backtest --plan-only
+uv run --locked python -m retailforecast.evaluation.backtest --stage development --output artifacts/evaluation/development
+```
+
+The default is a bounded three-store, three-origin, 48-horizon study. Results are private JSON/Parquet under `artifacts/evaluation`; choose a new output directory if a run already exists. The real final holdout remains reserved and unscored. Feature/evaluation-only synthetic tests require neither Kaggle nor PostgreSQL; the full existing suite includes PostgreSQL integration tests.

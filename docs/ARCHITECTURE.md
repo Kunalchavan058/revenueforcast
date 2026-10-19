@@ -3,7 +3,7 @@
 ## In plain English
 The browser asks a local API for forecasts. A saved model is reused instead of relearning on every request. A separate worker trains candidates while the approved model keeps serving. Historical data, predictions, and learned model files have different storage homes. No GPU or paid service is required.
 
-Status: target architecture with phased implementation. API/web health, PostgreSQL ingestion, DVC normalization and the Phase 6 feature boundary are implemented. Forecast serving, estimator training, evaluation runners, MLflow and scheduling below remain planned. See [data flow](DATA_FLOW.md), [lifecycle](MODEL_LIFECYCLE.md), and [diagram standards](DIAGRAM_STYLE_GUIDE.md).
+Status: target architecture with phased implementation. API/web health, PostgreSQL ingestion, DVC normalization, cutoff-safe features and Phase 7 baseline evaluation are implemented. Forecast serving, advanced estimator training, MLflow and scheduling below remain planned. See [data flow](DATA_FLOW.md), [lifecycle](MODEL_LIFECYCLE.md), and [diagram standards](DIAGRAM_STYLE_GUIDE.md).
 
 ## Vocabulary
 | Term | Meaning |
@@ -166,3 +166,7 @@ DVC now versions raw and normalized files independently of PostgreSQL. configs/d
 ## Phase 6 feature boundary
 
 The shared features package implements direct 1..48-day rows for future training, backtests and inference. The verified Parquet adapter carries dataset identity and explicit knowledge-time assumptions. Metadata and target plans are as-of joins; future actual labels are attached only outside predictors. Training-fitted preprocessing is serializable JSON and never refitted at serving. FEATURES.md, FEATURE_REGISTRY.md and decision 0007 define this implemented boundary. No estimator, worker, scoring runner or HTTP feature/forecast endpoint has been added.
+
+## Phase 7 offline evaluation boundary
+
+ForecasterFactory/FittedForecaster protocols separate algorithms from the rolling-origin runner. Fit receives only cutoff/availability-filtered immutable history; prediction receives the shared FeatureRow. Scoring-only actual Sales/observed Open join afterward. Three deterministic baselines refit at each origin; all horizons reuse that frozen state. JSON/Parquet store real metrics, common-support coverage and source/fold provenance in ignored local artifacts. The final calendar is reserved before development selection and a guarded final release evaluates only a frozen winner. The real final period remains unscored in this phase. MODEL_STRATEGY.md and decision 0008 define scoring, failure and resource policies. No worker, model registry, new API/UI, database change or advanced training is added.

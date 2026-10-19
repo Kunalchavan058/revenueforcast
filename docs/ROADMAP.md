@@ -16,7 +16,8 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Historical data contracts, validation and transactional ingestion (Phase 4).
 - [x] Dataset file versioning and reproducible preprocessing (Phase 5).
 - [x] Forecast feature availability and information-cutoff tests (Phase 6).
-- [ ] Temporal evaluation, baseline, CPU models, and reproducible artifacts.
+- [x] Rolling-origin evaluation, deterministic baselines and reproducible score artifacts (Phase 7).
+- [ ] CPU models and bounded advanced-model training.
 - [ ] Training lifecycle, active-model reuse, API, and persistence.
 - [ ] Forecast UI, explanations, exports, and run/version history.
 - [ ] Explicit new-label ingestion and optional local retraining schedules.
@@ -77,3 +78,15 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Future mutation/erasure, h=1/48, missing rows, Sunday, store isolation, cold-start and label-alignment tests pass.
 - [x] Worked real row, generated reference, coding standards and phase report documented.
 - [x] Stop before estimator training, scoring runner, model lifecycle or forecast API/UI.
+
+## Phase 7 — Honest baselines and rolling-origin evaluation
+- [x] Algorithm-independent fit/predict contracts with physically available history and shared feature inputs.
+- [x] Last-known, last-observed weekday and historical weekday-average baselines, including h=48.
+- [x] Disjoint expanding-origin development folds and a reserved final holdout.
+- [x] MAE/RMSE/RMSPE with zero exclusions, real business totals and common-support coverage.
+- [x] Per-fold/store/horizon/open-context/week/month metrics and JSON/Parquet provenance.
+- [x] Bounded CLI, frozen selection and once-only final release with verified cached repeats.
+- [x] Hand-calculated, future mutation, synthetic CLI and byte-reproducibility tests pass.
+- [x] Real three-store development study rerun byte-identically; real final holdout left unscored.
+- [x] Model strategy, design decision, standards, guide/status and implementation report updated.
+- [x] Stop before advanced-model training, forecast serving, UI/API or lifecycle services.

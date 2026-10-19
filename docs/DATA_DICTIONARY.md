@@ -81,3 +81,7 @@ File tables use normalized source names with Arrow int8/int16/int32, boolean, da
 ## Phase 6 feature view
 
 FeatureRow contains request identity, registered predictors and optional snapshot context, never y or Customers. LabeledExample attaches the aligned target separately and requires its availability at/after target date. No database columns or migration changed. Raw/normalized source fields above retain their original meaning; learned imputation affects only the model matrix. Engineered field names, types, sources and policies are generated in FEATURE_REGISTRY.md rather than duplicated here.
+
+## Phase 7 evaluation artifacts
+
+Outcome is scoring-only (store_id, target_date, actual_sales, available_as_of, observed_open). PredictionPoint keeps raw/adjusted predictions, training/cutoff dates, known_open separately from observed_open, coverage status and nullable actual/error fields. Only labeled available outcomes can produce errors; sample submission/test never supply outcomes. Segment records contain requested/labeled/scored counts, coverage, zero exclusions, real sales totals and MAE/RMSE/RMSPE. MODEL_STRATEGY.md defines their units/masks and the JSON/Parquet publication manifest. These files remain ignored under artifacts/evaluation; no business schema or migration changed.
