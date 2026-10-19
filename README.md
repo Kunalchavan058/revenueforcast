@@ -107,3 +107,5 @@ Other checkouts should install Node 22.13+ themselves; .tools/ is not committed.
 ## Design and status
 
 Read [AGENTS.md](AGENTS.md), [product spec](docs/PRODUCT_SPEC.md), [architecture](docs/ARCHITECTURE.md), [coding standards](docs/CODING_STANDARDS.md), [roadmap](docs/ROADMAP.md), and [journal](docs/IMPLEMENTATION_LOG.md). Design documents include future behavior beyond this phase. No ML evaluation or accuracy claims exist.
+
+The public repository is [Kunalchavan058/revenueforcast](https://github.com/Kunalchavan058/revenueforcast). Next.js regenerates next-env.d.ts during dev/build/typegen; it stays local and ignored while remaining included in tsconfig.json.

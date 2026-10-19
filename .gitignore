@@ -66,3 +66,6 @@ Desktop.ini
 
 # Legacy Colab connection experiment; product work uses Python modules.
 /colab_test.ipynb
+
+# Next.js regenerates this declaration for dev/build/typegen.
+/apps/web/next-env.d.ts
