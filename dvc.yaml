@@ -1,0 +1,83 @@
+vars:
+  - configs/data.yaml
+
+stages:
+  synthetic_source:
+    cmd: uv run --locked python -m retailforecast.data.file_pipeline sample --profile synthetic
+    deps:
+      - tests/fixtures/rossmann_synthetic.json
+      - src/retailforecast/data/synthetic_data.py
+      - src/retailforecast/data/pipeline_config.py
+      - uv.lock
+    params:
+      - configs/data.yaml:
+          - profiles.synthetic
+    outs:
+      - ${profiles.synthetic.source_dir}
+
+  validate:
+    foreach: ${profiles}
+    do:
+      cmd: uv run --locked python -m retailforecast.data.file_pipeline validate --profile ${key}
+      deps:
+        - ${item.source_dir}
+        - src/retailforecast/data/contracts.py
+        - src/retailforecast/data/validation.py
+        - src/retailforecast/data/pipeline_config.py
+        - src/retailforecast/data/parquet_tables.py
+        - src/retailforecast/data/file_pipeline.py
+        - src/retailforecast/data/synthetic_data.py
+        - uv.lock
+      params:
+        - configs/data.yaml:
+            - profiles
+            - validation
+            - processing
+            - schema_version
+      outs:
+        - ${item.output_dir}/validation.json
+
+  normalize:
+    foreach: ${profiles}
+    do:
+      cmd: uv run --locked python -m retailforecast.data.file_pipeline normalize --profile ${key}
+      deps:
+        - ${item.source_dir}
+        - ${item.output_dir}/validation.json
+        - src/retailforecast/data/contracts.py
+        - src/retailforecast/data/validation.py
+        - src/retailforecast/data/pipeline_config.py
+        - src/retailforecast/data/parquet_tables.py
+        - src/retailforecast/data/file_pipeline.py
+        - uv.lock
+      params:
+        - configs/data.yaml:
+            - profiles
+            - validation
+            - processing
+            - schema_version
+      outs:
+        - ${item.output_dir}/tables
+
+  manifest:
+    foreach: ${profiles}
+    do:
+      cmd: uv run --locked python -m retailforecast.data.file_pipeline manifest --profile ${key}
+      deps:
+        - ${item.source_dir}
+        - ${item.output_dir}/validation.json
+        - ${item.output_dir}/tables
+        - src/retailforecast/data/contracts.py
+        - src/retailforecast/data/validation.py
+        - src/retailforecast/data/pipeline_config.py
+        - src/retailforecast/data/parquet_tables.py
+        - src/retailforecast/data/file_pipeline.py
+        - uv.lock
+      params:
+        - configs/data.yaml:
+            - profiles
+            - validation
+            - processing
+            - schema_version
+      outs:
+        - ${item.output_dir}/manifest.json

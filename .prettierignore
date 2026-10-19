@@ -11,3 +11,5 @@ playwright-report
 test-results
 apps/web/next-env.d.ts
 .tools
+
+dvc.lock

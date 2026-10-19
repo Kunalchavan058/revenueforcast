@@ -16,6 +16,9 @@ dependencies = [
     "alembic==1.20.0",
     "psycopg[binary]==3.3.6",
     "pydantic-settings==2.16.0",
+    "dvc==3.67.1",
+    "pyarrow==26.0.0",
+    "pyyaml==6.0.3",
 ]
 
 [dependency-groups]
@@ -24,6 +27,7 @@ dev = [
     "mypy==1.20.2",
     "pytest==8.4.2",
     "httpx2==2.14.0",
+    "types-pyyaml==6.0.12.20260906",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -49,3 +53,7 @@ testpaths = ["tests"]
 pythonpath = ["services/api", "tests"]
 addopts = "-ra"
 markers = ["integration: requires migrated local PostgreSQL; failures are not skipped"]
+
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true

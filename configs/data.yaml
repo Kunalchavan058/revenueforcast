@@ -1,0 +1,23 @@
+schema_version: 1
+profiles:
+  synthetic:
+    kind: synthetic
+    source_dir: data/raw/synthetic
+    output_dir: data/processed/synthetic
+    fixture: tests/fixtures/rossmann_synthetic.json
+  rossmann:
+    kind: rossmann
+    source_dir: data/raw/rossmann
+    output_dir: data/processed/rossmann
+    fixture: null
+validation:
+  minimum_date: "2000-01-01"
+  maximum_date: "2015-12-31"
+  availability_policy: >-
+    Historical simulation: train labels available on their business date;
+    store metadata and competition plans are assumed known at forecast cutoff.
+    Archived CSV files do not prove real-world historical availability.
+processing:
+  batch_rows: 10000
+  compression: zstd
+  compression_level: 3

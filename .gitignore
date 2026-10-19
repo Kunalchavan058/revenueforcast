@@ -69,3 +69,9 @@ Desktop.ini
 
 # Next.js regenerates this declaration for dev/build/typegen.
 /apps/web/next-env.d.ts
+
+# DVC pointer files are source metadata; raw bytes and Parquet stay local.
+!/data/raw/*.dvc
+!/data/raw/.gitignore
+*.parquet
+.dvc/config.local

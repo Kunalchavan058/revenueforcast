@@ -1,0 +1,66 @@
+{
+  "synthetic_only": true,
+  "description": "Hand-authored educational records, not copied from Kaggle. Store IDs deliberately exceed Rossmann IDs.",
+  "files": {
+    "store.csv": {
+      "columns": [
+        "Store",
+        "StoreType",
+        "Assortment",
+        "CompetitionDistance",
+        "CompetitionOpenSinceMonth",
+        "CompetitionOpenSinceYear",
+        "Promo2",
+        "Promo2SinceWeek",
+        "Promo2SinceYear",
+        "PromoInterval"
+      ],
+      "rows": [
+        ["9001", "a", "a", "", "", "", "0", "", "", ""],
+        ["9002", "b", "c", "250", "", "", "0", "", "", ""]
+      ]
+    },
+    "train.csv": {
+      "columns": [
+        "Store",
+        "DayOfWeek",
+        "Date",
+        "Sales",
+        "Customers",
+        "Open",
+        "Promo",
+        "StateHoliday",
+        "SchoolHoliday"
+      ],
+      "rows": [
+        ["9001", "4", "2015-07-30", "10.00", "2", "1", "0", "0", "0"],
+        ["9001", "5", "2015-07-31", "0", "0", "0", "0", "0", "0"],
+        ["9002", "4", "2015-07-30", "20.50", "4", "1", "1", "0", "0"],
+        ["9002", "5", "2015-07-31", "15.25", "3", "1", "0", "0", "0"]
+      ]
+    },
+    "test.csv": {
+      "columns": [
+        "Id",
+        "Store",
+        "DayOfWeek",
+        "Date",
+        "Open",
+        "Promo",
+        "StateHoliday",
+        "SchoolHoliday"
+      ],
+      "rows": [
+        ["1", "9001", "6", "2015-08-01", "", "0", "0", "0"],
+        ["2", "9002", "6", "2015-08-01", "1", "1", "0", "0"]
+      ]
+    },
+    "sample_submission.csv": {
+      "columns": ["Id", "Sales"],
+      "rows": [
+        ["1", "0"],
+        ["2", "0"]
+      ]
+    }
+  }
+}

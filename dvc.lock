@@ -1,0 +1,449 @@
+schema: '2.0'
+stages:
+  synthetic_source:
+    cmd: uv run --locked python -m retailforecast.data.file_pipeline sample
+      --profile synthetic
+    deps:
+    - path: src/retailforecast/data/pipeline_config.py
+      hash: md5
+      md5: 9c1c55e34cc85c3da28873d464843f34
+      size: 4695
+    - path: src/retailforecast/data/synthetic_data.py
+      hash: md5
+      md5: 01ad73502eaac009d7db264ba41c470a
+      size: 1954
+    - path: tests/fixtures/rossmann_synthetic.json
+      hash: md5
+      md5: ad826e94eb3fd8fa5ed0e1dea72777c9
+      size: 1636
+    - path: uv.lock
+      hash: md5
+      md5: 2570336134994bfaca66072922d3b224
+      size: 377922
+    params:
+      configs/data.yaml:
+        profiles.synthetic:
+          kind: synthetic
+          source_dir: data/raw/synthetic
+          output_dir: data/processed/synthetic
+          fixture: tests/fixtures/rossmann_synthetic.json
+    outs:
+    - path: data/raw/synthetic
+      hash: md5
+      md5: 8cf3c9002bef813ce5e0513c39748f51.dir
+      size: 529
+      nfiles: 4
+  validate@synthetic:
+    cmd: uv run --locked python -m retailforecast.data.file_pipeline validate
+      --profile synthetic
+    deps:
+    - path: data/raw/synthetic
+      hash: md5
+      md5: 8cf3c9002bef813ce5e0513c39748f51.dir
+      size: 529
+      nfiles: 4
+    - path: src/retailforecast/data/contracts.py
+      hash: md5
+      md5: 522df560eb63a63ed400b558d8f5c556
+      size: 6644
+    - path: src/retailforecast/data/file_pipeline.py
+      hash: md5
+      md5: c637e752df52f389f9769805ca385104
+      size: 15532
+    - path: src/retailforecast/data/parquet_tables.py
+      hash: md5
+      md5: b76948852a34c700e5099efd01892ea0
+      size: 4486
+    - path: src/retailforecast/data/pipeline_config.py
+      hash: md5
+      md5: 9c1c55e34cc85c3da28873d464843f34
+      size: 4695
+    - path: src/retailforecast/data/synthetic_data.py
+      hash: md5
+      md5: 01ad73502eaac009d7db264ba41c470a
+      size: 1954
+    - path: src/retailforecast/data/validation.py
+      hash: md5
+      md5: cf5050215383ab38528b46a6223afc5a
+      size: 10340
+    - path: uv.lock
+      hash: md5
+      md5: 2570336134994bfaca66072922d3b224
+      size: 377922
+    params:
+      configs/data.yaml:
+        processing:
+          batch_rows: 10000
+          compression: zstd
+          compression_level: 3
+        profiles:
+          synthetic:
+            kind: synthetic
+            source_dir: data/raw/synthetic
+            output_dir: data/processed/synthetic
+            fixture: tests/fixtures/rossmann_synthetic.json
+          rossmann:
+            kind: rossmann
+            source_dir: data/raw/rossmann
+            output_dir: data/processed/rossmann
+            fixture:
+        schema_version: 1
+        validation:
+          minimum_date: '2000-01-01'
+          maximum_date: '2015-12-31'
+          availability_policy: 'Historical simulation: train labels available on their
+            business date; store metadata and competition plans are assumed known
+            at forecast cutoff. Archived CSV files do not prove real-world historical
+            availability.'
+    outs:
+    - path: data/processed/synthetic/validation.json
+      hash: md5
+      md5: 86bb7e92529d65eb714ab8f27dd32de3
+      size: 3754
+  normalize@synthetic:
+    cmd: uv run --locked python -m retailforecast.data.file_pipeline normalize
+      --profile synthetic
+    deps:
+    - path: data/processed/synthetic/validation.json
+      hash: md5
+      md5: 86bb7e92529d65eb714ab8f27dd32de3
+      size: 3754
+    - path: data/raw/synthetic
+      hash: md5
+      md5: 8cf3c9002bef813ce5e0513c39748f51.dir
+      size: 529
+      nfiles: 4
+    - path: src/retailforecast/data/contracts.py
+      hash: md5
+      md5: 522df560eb63a63ed400b558d8f5c556
+      size: 6644
+    - path: src/retailforecast/data/file_pipeline.py
+      hash: md5
+      md5: c637e752df52f389f9769805ca385104
+      size: 15532
+    - path: src/retailforecast/data/parquet_tables.py
+      hash: md5
+      md5: b76948852a34c700e5099efd01892ea0
+      size: 4486
+    - path: src/retailforecast/data/pipeline_config.py
+      hash: md5
+      md5: 9c1c55e34cc85c3da28873d464843f34
+      size: 4695
+    - path: src/retailforecast/data/validation.py
+      hash: md5
+      md5: cf5050215383ab38528b46a6223afc5a
+      size: 10340
+    - path: uv.lock
+      hash: md5
+      md5: 2570336134994bfaca66072922d3b224
+      size: 377922
+    params:
+      configs/data.yaml:
+        processing:
+          batch_rows: 10000
+          compression: zstd
+          compression_level: 3
+        profiles:
+          synthetic:
+            kind: synthetic
+            source_dir: data/raw/synthetic
+            output_dir: data/processed/synthetic
+            fixture: tests/fixtures/rossmann_synthetic.json
+          rossmann:
+            kind: rossmann
+            source_dir: data/raw/rossmann
+            output_dir: data/processed/rossmann
+            fixture:
+        schema_version: 1
+        validation:
+          minimum_date: '2000-01-01'
+          maximum_date: '2015-12-31'
+          availability_policy: 'Historical simulation: train labels available on their
+            business date; store metadata and competition plans are assumed known
+            at forecast cutoff. Archived CSV files do not prove real-world historical
+            availability.'
+    outs:
+    - path: data/processed/synthetic/tables
+      hash: md5
+      md5: 85dfeec9446051dc9bdcba44889ef597.dir
+      size: 8846
+      nfiles: 5
+  manifest@synthetic:
+    cmd: uv run --locked python -m retailforecast.data.file_pipeline manifest
+      --profile synthetic
+    deps:
+    - path: data/processed/synthetic/tables
+      hash: md5
+      md5: 85dfeec9446051dc9bdcba44889ef597.dir
+      size: 8846
+      nfiles: 5
+    - path: data/processed/synthetic/validation.json
+      hash: md5
+      md5: 86bb7e92529d65eb714ab8f27dd32de3
+      size: 3754
+    - path: data/raw/synthetic
+      hash: md5
+      md5: 8cf3c9002bef813ce5e0513c39748f51.dir
+      size: 529
+      nfiles: 4
+    - path: src/retailforecast/data/contracts.py
+      hash: md5
+      md5: 522df560eb63a63ed400b558d8f5c556
+      size: 6644
+    - path: src/retailforecast/data/file_pipeline.py
+      hash: md5
+      md5: c637e752df52f389f9769805ca385104
+      size: 15532
+    - path: src/retailforecast/data/parquet_tables.py
+      hash: md5
+      md5: b76948852a34c700e5099efd01892ea0
+      size: 4486
+    - path: src/retailforecast/data/pipeline_config.py
+      hash: md5
+      md5: 9c1c55e34cc85c3da28873d464843f34
+      size: 4695
+    - path: src/retailforecast/data/validation.py
+      hash: md5
+      md5: cf5050215383ab38528b46a6223afc5a
+      size: 10340
+    - path: uv.lock
+      hash: md5
+      md5: 2570336134994bfaca66072922d3b224
+      size: 377922
+    params:
+      configs/data.yaml:
+        processing:
+          batch_rows: 10000
+          compression: zstd
+          compression_level: 3
+        profiles:
+          synthetic:
+            kind: synthetic
+            source_dir: data/raw/synthetic
+            output_dir: data/processed/synthetic
+            fixture: tests/fixtures/rossmann_synthetic.json
+          rossmann:
+            kind: rossmann
+            source_dir: data/raw/rossmann
+            output_dir: data/processed/rossmann
+            fixture:
+        schema_version: 1
+        validation:
+          minimum_date: '2000-01-01'
+          maximum_date: '2015-12-31'
+          availability_policy: 'Historical simulation: train labels available on their
+            business date; store metadata and competition plans are assumed known
+            at forecast cutoff. Archived CSV files do not prove real-world historical
+            availability.'
+    outs:
+    - path: data/processed/synthetic/manifest.json
+      hash: md5
+      md5: 8a0954a111b5b1f31399316eee33ae69
+      size: 3894
+  validate@rossmann:
+    cmd: uv run --locked python -m retailforecast.data.file_pipeline validate
+      --profile rossmann
+    deps:
+    - path: data/raw/rossmann
+      hash: md5
+      md5: 8bba20a68faeb1ca37b6277ffef3d996.dir
+      size: 39847998
+      nfiles: 4
+    - path: src/retailforecast/data/contracts.py
+      hash: md5
+      md5: 522df560eb63a63ed400b558d8f5c556
+      size: 6644
+    - path: src/retailforecast/data/file_pipeline.py
+      hash: md5
+      md5: c637e752df52f389f9769805ca385104
+      size: 15532
+    - path: src/retailforecast/data/parquet_tables.py
+      hash: md5
+      md5: b76948852a34c700e5099efd01892ea0
+      size: 4486
+    - path: src/retailforecast/data/pipeline_config.py
+      hash: md5
+      md5: 9c1c55e34cc85c3da28873d464843f34
+      size: 4695
+    - path: src/retailforecast/data/synthetic_data.py
+      hash: md5
+      md5: 01ad73502eaac009d7db264ba41c470a
+      size: 1954
+    - path: src/retailforecast/data/validation.py
+      hash: md5
+      md5: cf5050215383ab38528b46a6223afc5a
+      size: 10340
+    - path: uv.lock
+      hash: md5
+      md5: 2570336134994bfaca66072922d3b224
+      size: 377922
+    params:
+      configs/data.yaml:
+        processing:
+          batch_rows: 10000
+          compression: zstd
+          compression_level: 3
+        profiles:
+          synthetic:
+            kind: synthetic
+            source_dir: data/raw/synthetic
+            output_dir: data/processed/synthetic
+            fixture: tests/fixtures/rossmann_synthetic.json
+          rossmann:
+            kind: rossmann
+            source_dir: data/raw/rossmann
+            output_dir: data/processed/rossmann
+            fixture:
+        schema_version: 1
+        validation:
+          minimum_date: '2000-01-01'
+          maximum_date: '2015-12-31'
+          availability_policy: 'Historical simulation: train labels available on their
+            business date; store metadata and competition plans are assumed known
+            at forecast cutoff. Archived CSV files do not prove real-world historical
+            availability.'
+    outs:
+    - path: data/processed/rossmann/validation.json
+      hash: md5
+      md5: 89d90cb2f65d2b26e2f4f1e0900643b5
+      size: 3880
+  normalize@rossmann:
+    cmd: uv run --locked python -m retailforecast.data.file_pipeline normalize
+      --profile rossmann
+    deps:
+    - path: data/processed/rossmann/validation.json
+      hash: md5
+      md5: 89d90cb2f65d2b26e2f4f1e0900643b5
+      size: 3880
+    - path: data/raw/rossmann
+      hash: md5
+      md5: 8bba20a68faeb1ca37b6277ffef3d996.dir
+      size: 39847998
+      nfiles: 4
+    - path: src/retailforecast/data/contracts.py
+      hash: md5
+      md5: 522df560eb63a63ed400b558d8f5c556
+      size: 6644
+    - path: src/retailforecast/data/file_pipeline.py
+      hash: md5
+      md5: c637e752df52f389f9769805ca385104
+      size: 15532
+    - path: src/retailforecast/data/parquet_tables.py
+      hash: md5
+      md5: b76948852a34c700e5099efd01892ea0
+      size: 4486
+    - path: src/retailforecast/data/pipeline_config.py
+      hash: md5
+      md5: 9c1c55e34cc85c3da28873d464843f34
+      size: 4695
+    - path: src/retailforecast/data/validation.py
+      hash: md5
+      md5: cf5050215383ab38528b46a6223afc5a
+      size: 10340
+    - path: uv.lock
+      hash: md5
+      md5: 2570336134994bfaca66072922d3b224
+      size: 377922
+    params:
+      configs/data.yaml:
+        processing:
+          batch_rows: 10000
+          compression: zstd
+          compression_level: 3
+        profiles:
+          synthetic:
+            kind: synthetic
+            source_dir: data/raw/synthetic
+            output_dir: data/processed/synthetic
+            fixture: tests/fixtures/rossmann_synthetic.json
+          rossmann:
+            kind: rossmann
+            source_dir: data/raw/rossmann
+            output_dir: data/processed/rossmann
+            fixture:
+        schema_version: 1
+        validation:
+          minimum_date: '2000-01-01'
+          maximum_date: '2015-12-31'
+          availability_policy: 'Historical simulation: train labels available on their
+            business date; store metadata and competition plans are assumed known
+            at forecast cutoff. Archived CSV files do not prove real-world historical
+            availability.'
+    outs:
+    - path: data/processed/rossmann/tables
+      hash: md5
+      md5: e5ee7e5e63952c55e0e15d615b144a42.dir
+      size: 7007287
+      nfiles: 5
+  manifest@rossmann:
+    cmd: uv run --locked python -m retailforecast.data.file_pipeline manifest
+      --profile rossmann
+    deps:
+    - path: data/processed/rossmann/tables
+      hash: md5
+      md5: e5ee7e5e63952c55e0e15d615b144a42.dir
+      size: 7007287
+      nfiles: 5
+    - path: data/processed/rossmann/validation.json
+      hash: md5
+      md5: 89d90cb2f65d2b26e2f4f1e0900643b5
+      size: 3880
+    - path: data/raw/rossmann
+      hash: md5
+      md5: 8bba20a68faeb1ca37b6277ffef3d996.dir
+      size: 39847998
+      nfiles: 4
+    - path: src/retailforecast/data/contracts.py
+      hash: md5
+      md5: 522df560eb63a63ed400b558d8f5c556
+      size: 6644
+    - path: src/retailforecast/data/file_pipeline.py
+      hash: md5
+      md5: c637e752df52f389f9769805ca385104
+      size: 15532
+    - path: src/retailforecast/data/parquet_tables.py
+      hash: md5
+      md5: b76948852a34c700e5099efd01892ea0
+      size: 4486
+    - path: src/retailforecast/data/pipeline_config.py
+      hash: md5
+      md5: 9c1c55e34cc85c3da28873d464843f34
+      size: 4695
+    - path: src/retailforecast/data/validation.py
+      hash: md5
+      md5: cf5050215383ab38528b46a6223afc5a
+      size: 10340
+    - path: uv.lock
+      hash: md5
+      md5: 2570336134994bfaca66072922d3b224
+      size: 377922
+    params:
+      configs/data.yaml:
+        processing:
+          batch_rows: 10000
+          compression: zstd
+          compression_level: 3
+        profiles:
+          synthetic:
+            kind: synthetic
+            source_dir: data/raw/synthetic
+            output_dir: data/processed/synthetic
+            fixture: tests/fixtures/rossmann_synthetic.json
+          rossmann:
+            kind: rossmann
+            source_dir: data/raw/rossmann
+            output_dir: data/processed/rossmann
+            fixture:
+        schema_version: 1
+        validation:
+          minimum_date: '2000-01-01'
+          maximum_date: '2015-12-31'
+          availability_policy: 'Historical simulation: train labels available on their
+            business date; store metadata and competition plans are assumed known
+            at forecast cutoff. Archived CSV files do not prove real-world historical
+            availability.'
+    outs:
+    - path: data/processed/rossmann/manifest.json
+      hash: md5
+      md5: f6e93fdfc9b047f5798701be7134a287
+      size: 3906
