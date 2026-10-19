@@ -1,0 +1,68 @@
+# Dataset contents stay local; preserve only empty folder markers.
+/data/*
+!/data/raw/
+!/data/processed/
+/data/raw/*
+!/data/raw/.gitkeep
+/data/processed/*
+!/data/processed/.gitkeep
+*.csv
+*.zip
+
+# Local artifacts, DVC cache/remote, infrastructure and model binaries.
+/artifacts/*
+!/artifacts/.gitkeep
+.dvc/cache/
+.dvc/tmp/
+/.dvc-remote/
+/infra/volumes/
+mlruns/
+mlartifacts/
+*.pkl
+*.pickle
+*.joblib
+*.onnx
+*.ubj
+*.bin
+
+# Python environments, tooling and build output.
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Frontend dependencies, builds and browser reports.
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+playwright-report/
+test-results/
+*.log
+
+# Local configuration and credentials.
+.env
+.env.*
+!.env.example
+.kaggle/
+kaggle.json
+
+# Operating system files.
+.DS_Store
+Thumbs.db
+Desktop.ini
+.tools/
+
+# Legacy Colab connection experiment; product work uses Python modules.
+/colab_test.ipynb

@@ -1,0 +1,25 @@
+{
+  "name": "retailforecast-workspace",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=22.13.0",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "dev": "uv run --locked python scripts/manage.py dev",
+    "api": "uv run --locked python scripts/manage.py api",
+    "web": "uv run --locked python scripts/manage.py web",
+    "lint": "uv run --locked python scripts/manage.py lint",
+    "format": "uv run --locked python scripts/manage.py format",
+    "format:check": "uv run --locked python scripts/manage.py format-check",
+    "typecheck": "uv run --locked python scripts/manage.py typecheck",
+    "test": "uv run --locked python scripts/manage.py test",
+    "test:e2e": "npm run test:e2e --workspace apps/web",
+    "build": "uv run --locked python scripts/manage.py build",
+    "check": "uv run --locked python scripts/manage.py check",
+    "setup": "uv sync --locked && npm ci"
+  }
+}

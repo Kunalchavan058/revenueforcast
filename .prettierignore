@@ -1,0 +1,13 @@
+node_modules
+.next
+.venv
+data
+artifacts
+uv.lock
+package-lock.json
+docs
+*.ipynb
+playwright-report
+test-results
+apps/web/next-env.d.ts
+.tools

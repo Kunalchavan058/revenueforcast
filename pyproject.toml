@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "retailforecast"
+version = "0.1.0"
+description = "Local-first retail forecasting application skeleton"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "fastapi==0.149.0",
+    "uvicorn==0.54.0",
+    "pydantic==2.14.1",
+    "python-dotenv==1.2.4",
+    "sqlalchemy==2.1.5",
+    "alembic==1.20.0",
+    "psycopg[binary]==3.3.6",
+    "pydantic-settings==2.16.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff==0.17.1",
+    "mypy==1.20.2",
+    "pytest==8.4.2",
+    "httpx2==2.14.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/retailforecast"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["*.ipynb", ".tools"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "D"]
+ignore = ["D203", "D213"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+python_version = "3.11"
+strict = true
+files = ["src", "services/api", "scripts", "tests", "infra/migrations"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["services/api", "tests"]
+addopts = "-ra"
+markers = ["integration: requires migrated local PostgreSQL; failures are not skipped"]
