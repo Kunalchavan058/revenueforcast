@@ -20,7 +20,7 @@ These are verified source-file counts, not claims of live data or model accuracy
 |---|---|---|---|
 | Store | train/test/store | positive integer / store_id | Store must exist in this snapshot's store.csv; metadata key unique per snapshot |
 | Date | train/test | business date / date | configured date bounds; matches DayOfWeek; unique (Store, Date) within each file |
-| DayOfWeek | train/test | integer 1–7 / day_of_week | Monday=1; must agree with Date |
+| DayOfWeek | train/test | integer 1â€“7 / day_of_week | Monday=1; must agree with Date |
 | Sales | train only | nonnegative finite Decimal(18,4) / daily_sales.sales | label, never future predictor; missing/negative/nonfinite values rejected |
 | Customers | train only | nonnegative integer / daily_sales.customers | historical audit only; forbidden as a V1 predictor |
 | Open | train/test | 0/1 / is_open | required for actuals; blank/missing in test retained as NULL |
@@ -32,11 +32,11 @@ These are verified source-file counts, not claims of live data or model accuracy
 | StoreType | store | a/b/c/d or NULL / store_type | optional |
 | Assortment | store | a/b/c or NULL / assortment | optional |
 | CompetitionDistance | store | nonnegative finite Decimal(18,4) or NULL | source distance; units/causal effects not inferred |
-| CompetitionOpenSinceMonth | store | integer 1–12 or NULL | optional |
-| CompetitionOpenSinceYear | store | integer 1900–2100 or NULL | optional |
+| CompetitionOpenSinceMonth | store | integer 1â€“12 or NULL | optional |
+| CompetitionOpenSinceYear | store | integer 1900â€“2100 or NULL | optional |
 | Promo2 | store | 0/1 or NULL | optional |
-| Promo2SinceWeek | store | integer 1–53 or NULL | optional |
-| Promo2SinceYear | store | integer 1900–2100 or NULL | optional |
+| Promo2SinceWeek | store | integer 1â€“53 or NULL | optional |
+| Promo2SinceYear | store | integer 1900â€“2100 or NULL | optional |
 | PromoInterval | store | comma-separated known month abbreviations or NULL | Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sept, Oct, Nov, Dec |
 
 CSV whitespace is trimmed. Blank optional metadata is NULL, not zero. Exact integral strings such as 1.0 can become integer 1; fractional Customers/IDs, garbage numerics, infinities, negative labels, unknown columns, duplicate headers, and extra cells fail validation. Missing required columns are reported by name. No arbitrary rows are dropped to make an import pass.
@@ -59,7 +59,7 @@ All opaque IDs are UUID strings. UTC timestamps record ingestion/job events; sou
 | training_jobs | PK id; FK dataset_version_id | requested algorithm, constrained state, start/end, logs_uri/exit_code; execution not implemented |
 | model_versions | PK id; FKs dataset_version_id/training_job_id | algorithm, scope, trained_until, external artifact URI, feature fingerprint, MLflow run ID, trained_at, evaluation reference, approval status |
 | forecast_runs | PK id; FK source_version/model_version_id; unique (id, source_version) | request cutoff and created_at shared by all points; execution not implemented |
-| forecast_points | PK (run_id, store_id, target_date); unique (run_id, store_id, horizon); composite FKs to run and stores | horizon 1–48, nonnegative predicted_sales; no prediction code implemented |
+| forecast_points | PK (run_id, store_id, target_date); unique (run_id, store_id, horizon); composite FKs to run and stores | horizon 1â€“48, nonnegative predicted_sales; no prediction code implemented |
 | retraining_schedules | PK id; unique scope | manual/weekly/monthly/quarterly, timezone, next_run, enabled; scheduler not implemented |
 
 For normalization, forecast_points inherits model_version_id, cutoff_date and created_at through forecast_runs rather than copying them onto every point. Later response/export schemas join those values. Scope identifies dataset lineage (currently an independent full snapshot), feature schema, requested algorithm policy and training-cutoff policy; a PostgreSQL partial unique index allows at most one status=active model per scope. It is a constraint, not an implemented approval/rollback service. Dedicated serving-slot generation/audit and richer training lifecycle tables remain future work.
@@ -71,5 +71,13 @@ Raw copies are preserved under ignored data/raw/<compound-checksum>/. Import ver
 
 The default date policy is 2000-01-01 through the current UTC date, configurable by --min-date/--max-date. Historical simulation assumes train labels are available on their business date and supplied store metadata/test plans are known at forecast cutoff. This assumption is persisted and disclosed; archived CSVs cannot prove real historical availability. available_through is the latest observed train label date, never the last test date.
 
-## Engineered fields — not implemented
-No lags, rolling windows, encodings, target transformations, model outputs, or predictions are created during ingestion. Future feature contracts must use cutoff_date, target_date, horizon_days, and available_as_of; only Sales observed at/before cutoff may supply lags/windows. Future actual Sales and all Customers predictors remain forbidden. No promotion optimization or causal effect inference is supported.
+## Engineered fields â€” not implemented
+No features or predictions are created during ingestion. Phase 6 adds a separate feature builder using cutoff_date, target_date, horizon_days and available_as_of; both observation and availability dates must be at/before cutoff for history. See the generated FEATURE_REGISTRY.md and FEATURES.md for the implemented lags, windows, target covariates and fitted encoding contract. Future actual Sales and all Customers predictors remain forbidden. No promotion optimization or causal effect inference is supported.
+
+
+## Phase 5 Parquet mapping
+File tables use normalized source names with Arrow int8/int16/int32, boolean, date32, exact decimal128(18,4) and string types. Source order and NULLs remain intact. submission_template uses submission_id/placeholder_sales; it is not an actuals table. Portable manifests identify artifacts and their last historical label date. No feature columns are engineered; DATA_VERSIONING.md explains checksums and SQL relationships.
+
+## Phase 6 feature view
+
+FeatureRow contains request identity, registered predictors and optional snapshot context, never y or Customers. LabeledExample attaches the aligned target separately and requires its availability at/after target date. No database columns or migration changed. Raw/normalized source fields above retain their original meaning; learned imputation affects only the model matrix. Engineered field names, types, sources and policies are generated in FEATURE_REGISTRY.md rather than duplicated here.

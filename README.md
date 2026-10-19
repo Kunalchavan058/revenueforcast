@@ -1,10 +1,10 @@
 # RetailForecast AI
 
-A local-first retail forecasting application in development. **Phase 4 implements PostgreSQL, migrations, source validation and historical Rossmann CLI ingestion.** The web app still shows API connection health only. Feature preparation, model training, forecasts, charts, scheduling, MLflow and DVC integration are not implemented. Historical 2015 records are not live data.
+A local-first retail forecasting application in development. **Phase 6 adds a shared cutoff-safe feature builder, generated feature registry and persisted training preprocessing.** The web app still shows API connection health only. Model training, forecasts, charts, scheduling and MLflow integration are not implemented. Historical 2015 records are not live data.
 
 ## Required tools
 
-- Python 3.11–3.13; 3.11 is the locally tested baseline.
+- Python 3.11â€“3.13; 3.11 is the locally tested baseline.
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) for the environment and lock.
 - Node.js 22.13+ with npm 10+; .node-version records the tested release.
 - Docker Desktop/Engine with Compose v2 for PostgreSQL and integration tests.
@@ -12,7 +12,7 @@ A local-first retail forecasting application in development. **Phase 4 implement
 
 API/web and ingestion stay on the host. Only PostgreSQL runs in Compose. The health-only UI can run without Docker; complete Python checks now require PostgreSQL.
 
-## Install — Windows PowerShell
+## Install â€” Windows PowerShell
 
 From the repository root:
 
@@ -26,7 +26,7 @@ uv run alembic check
 npm.cmd run dev
 ```
 
-## Install — bash
+## Install â€” bash
 
 ```bash
 uv sync --locked --python 3.11
@@ -109,3 +109,27 @@ Other checkouts should install Node 22.13+ themselves; .tools/ is not committed.
 Read [AGENTS.md](AGENTS.md), [product spec](docs/PRODUCT_SPEC.md), [architecture](docs/ARCHITECTURE.md), [coding standards](docs/CODING_STANDARDS.md), [roadmap](docs/ROADMAP.md), and [journal](docs/IMPLEMENTATION_LOG.md). Design documents include future behavior beyond this phase. No ML evaluation or accuracy claims exist.
 
 The public repository is [Kunalchavan058/revenueforcast](https://github.com/Kunalchavan058/revenueforcast). Next.js regenerates next-env.d.ts during dev/build/typegen; it stays local and ignored while remaining included in tsconfig.json.
+
+## Reproducible datasets with DVC
+
+DVC tracks artifact files/content hashes; PostgreSQL keeps transactional business records; Git tracks code/pointers; MLflow remains future integration. The local DVC remote is outside this repository and its location stays in ignored config.local.
+
+```text
+uv sync --locked
+uv run python scripts/configure_dvc.py
+uv run dvc repro manifest@synthetic
+uv run python -m retailforecast.data.file_pipeline verify --profile synthetic
+```
+
+This synthetic-only example needs no Kaggle, database or cloud. For real data, prepare copies from data/, run dvc add data/raw/rossmann, then dvc repro manifest@rossmann. See [DATA_VERSIONING.md](docs/DATA_VERSIONING.md) for commands, manifests, comparison/restore, re-ingestion and historical-cutoff rules. CSV and Parquet must stay out of Git.
+
+## Phase 6 — Inspect cutoff-safe features
+
+See [FEATURES.md](docs/FEATURES.md) for synthetic-only commands, shared training/backtest/inference use, the real July 31 → August 7 trace and availability assumptions. [FEATURE_REGISTRY.md](docs/FEATURE_REGISTRY.md) is generated from the executable registry.
+
+```text
+uv run --locked pytest tests/test_temporal_leakage.py tests/test_feature_snapshot.py
+uv run --locked python -m retailforecast.features.registry --check
+```
+
+Target plans are unknown unless explicitly supplied as known at cutoff. Customers never enter V1 predictors. This phase does not train an estimator or add forecast pages/endpoints.

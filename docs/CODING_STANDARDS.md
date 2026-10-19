@@ -61,3 +61,13 @@ Health means API liveness only, not storage/model readiness. Validate external J
 
 ## Database and ingestion conventions
 Use SQLAlchemy 2-style Mapped annotations with one metadata root and frozen explicit Alembic operations. Do not import live model metadata to recreate an old revision. Business transactions are owned by the ingestion/application boundary; batch helpers never commit. Keep failure audit writes separate from rollback of business rows, and serialize idempotent publication with database constraints/locks rather than a racy pre-check alone. UTC events and source business dates must remain distinct. Preserve actual labels, unknown Open and optional metadata; never impute zero observations during import. Source/report contracts belong in data modules, persistence in storage, CLI orchestration in import_rossmann. Normal tests use real isolated PostgreSQL schemas and must fail visibly when infrastructure is missing.
+
+
+## File artifact reproducibility
+Use configs/data.yaml as the single preprocessing configuration. Pin validation bounds, explicit Arrow schemas, batches and source order. Exclude wall-clock times and private paths from artifact identity. Normalization preserves labels/missingness and is not feature engineering. Bind reports/receipts to code/config/lock and verify before manifest consumption. A scoped mypy import exception covers PyArrow's untyped native API; owned interfaces remain explicitly typed and schema/runtime tests verify that boundary. DVC versions files, never PostgreSQL rows; private remote locations belong only in ignored config.local.
+
+## As-of feature conventions
+
+Use the generated Python feature registry as the sole feature-description/order contract. Regenerate FEATURE_REGISTRY.md and run --check after changing it. Features must use both business-date and knowledge-date gates. Name exact calendar lags with _from_cutoff and inclusive means with _through_cutoff; never shift across stores or substitute a previous row for a missing date. Full dated plan/metadata revisions replace earlier snapshots, including explicit unknowns. Customers are forbidden entirely. Keep labels outside FeatureRow.
+
+Fit preprocessing only within the selected training fold; persist medians, category vocabulary, feature order, registry identity and dataset/availability context. Inference applies saved state and rejects fit dates beyond its cutoff. Keep the explicit training transform separate from serving's temporal guard, sharing value conversion. Missing flags distinguish model imputation from facts. Bound selected stores and fit rows; reject oversized work rather than silently sampling. Test future mutations and hand-check inclusive dates whenever temporal logic changes.

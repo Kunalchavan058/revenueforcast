@@ -2,7 +2,7 @@
 
 Only the current user-authorized phase may be implemented. Later phases below are proposed, not authorization.
 
-## Phase 1 — Engineering rules and product definition
+## Phase 1 â€” Engineering rules and product definition
 - [x] Root AGENTS.md with permanent rules and completion review.
 - [x] Living coding standards with concrete examples and temporal provenance rules.
 - [x] Product specification and Given/When/Then acceptance criteria.
@@ -14,23 +14,24 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Architecture, diagrams, resource budgets, and detailed design decisions (Phase 2).
 - [x] Phase 3 repository/tooling and runnable API/web skeleton; infrastructure integration remains deferred.
 - [x] Historical data contracts, validation and transactional ingestion (Phase 4).
-- [ ] Forecast feature availability and information-cutoff tests.
+- [x] Dataset file versioning and reproducible preprocessing (Phase 5).
+- [x] Forecast feature availability and information-cutoff tests (Phase 6).
 - [ ] Temporal evaluation, baseline, CPU models, and reproducible artifacts.
 - [ ] Training lifecycle, active-model reuse, API, and persistence.
 - [ ] Forecast UI, explanations, exports, and run/version history.
 - [ ] Explicit new-label ingestion and optional local retraining schedules.
 - [ ] End-to-end acceptance, resource checks, demo, and portfolio documentation.
 
-## Phase 2 — Architecture and visual explanations
+## Phase 2 â€” Architecture and visual explanations
 - [x] Architecture, data flow, lifecycle, and diagram style guide.
-- [x] D1–D5 editable Mermaid with story, steps, inputs, outputs, and errors.
+- [x] D1â€“D5 editable Mermaid with story, steps, inputs, outputs, and errors.
 - [x] Stack/process and storage/registry decision records.
 - [x] Planned API/entity contracts and persistence/recreation table.
 - [x] Direct cutoff-safe forecasting, CPU limits, optional schedules, rollback.
 - [x] Static documentation/readability review; rendering gap recorded in journal.
 - [x] Stop without application code, scaffolding, packages, or training.
 
-## Phase 3 — Runnable monorepo skeleton
+## Phase 3 â€” Runnable monorepo skeleton
 - [x] Requested directories and single installable Python domain root.
 - [x] FastAPI /api/v1/health, typed frontend connection states and retry.
 - [x] Next.js App Router, React, strict TypeScript, Tailwind, shadcn/ui primitive.
@@ -39,10 +40,10 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Lint, formatting, strict types, 2 API tests and 5 component tests passed.
 - [x] Production build and 2 real Edge browser integration tests passed.
 - [x] Readability/docs review; no ML implementation, commits or push.
-- [x] PostgreSQL infrastructure and migrations delivered in Phase 4; MLflow/DVC remain future integration.
+- [x] PostgreSQL infrastructure and migrations delivered in Phase 4; DVC delivered in Phase 5; MLflow remains future integration.
 - [x] Stop at the runnable scaffold.
 
-## Phase 4 — PostgreSQL, data contracts and ingestion
+## Phase 4 â€” PostgreSQL, data contracts and ingestion
 - [x] Actual Rossmann columns/records inspected and source contracts defined.
 - [x] Digest-pinned Docker Compose PostgreSQL, host-side app processes.
 - [x] Minimal normalized SQLAlchemy entities and explicit Alembic migration.
@@ -54,3 +55,25 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Data dictionary, onboarding, design decisions, standards and journal updated.
 - [x] Readability/types/docstrings/comments and source-label boundaries reviewed.
 - [x] Stop before feature generation, model training, prediction or scheduling.
+
+## Phase 5 â€” Dataset file versioning and reproducible processing
+- [x] DVC initialized with portable shared settings and a private local remote outside Git.
+- [x] One data configuration, synthetic-only fixture and validate/normalize/manifest stages.
+- [x] Real source pointers, typed bounded-batch Parquet and inspectable provenance manifests.
+- [x] Forced rebuild produces identical fingerprints; changed-input and stale-artifact tests pass.
+- [x] Local remote synchronized; checkout and manifest verification succeed; DVC status clean.
+- [x] 36 Python tests, Ruff, formatting, strict mypy and lock checks pass.
+- [x] Beginner/engineer guide, storage boundaries, standards and phase report updated.
+- [x] Raw CSV, Parquet, credentials, cache and absolute local remote paths remain ignored.
+- [x] Stop before features, training, new API/UI endpoints or scheduling.
+
+## Phase 6 — Feature registry and direct multi-horizon datasets
+- [x] Actual CSV columns re-inspected and current engineering/data policies reviewed.
+- [x] Single generated registry with source, type, derivation, missingness, availability, lineage, risk and serving contracts.
+- [x] Shared per-store builder, exact cutoff lags, inclusive windows and aligned separate labels for horizons 1..48.
+- [x] Explicit as-of metadata/plans, no Customers predictors and unknown future flags preserved.
+- [x] Bounded verified Parquet adapter and inspect CLI with availability provenance.
+- [x] Training-only fitted preprocessing saved/reloaded with stable ordering and unknown-category handling.
+- [x] Future mutation/erasure, h=1/48, missing rows, Sunday, store isolation, cold-start and label-alignment tests pass.
+- [x] Worked real row, generated reference, coding standards and phase report documented.
+- [x] Stop before estimator training, scoring runner, model lifecycle or forecast API/UI.

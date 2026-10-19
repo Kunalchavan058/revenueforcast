@@ -3,7 +3,7 @@
 ## In plain English
 The browser asks a local API for forecasts. A saved model is reused instead of relearning on every request. A separate worker trains candidates while the approved model keeps serving. Historical data, predictions, and learned model files have different storage homes. No GPU or paid service is required.
 
-Status: target architecture. Phase 3 implements only the API liveness endpoint and web connection skeleton; all forecasting, training, data, registry, and persistence behavior below remains planned. See [data flow](DATA_FLOW.md), [lifecycle](MODEL_LIFECYCLE.md), and [diagram standards](DIAGRAM_STYLE_GUIDE.md).
+Status: target architecture with phased implementation. API/web health, PostgreSQL ingestion, DVC normalization and the Phase 6 feature boundary are implemented. Forecast serving, estimator training, evaluation runners, MLflow and scheduling below remain planned. See [data flow](DATA_FLOW.md), [lifecycle](MODEL_LIFECYCLE.md), and [diagram standards](DIAGRAM_STYLE_GUIDE.md).
 
 ## Vocabulary
 | Term | Meaning |
@@ -19,7 +19,7 @@ Status: target architecture. Phase 3 implements only the API liveness endpoint a
 | Training job | Durable work record, distinct from model approval |
 | Forecast cutoff | Last business date whose observations may inform the forecast; not today's date |
 
-## D1 — Manager journey
+## D1 â€” Manager journey
 ```mermaid
 flowchart LR
     M[Manager opens app] -->|check context| Q{Saved model available?}
@@ -47,11 +47,11 @@ flowchart LR
 **Story:** Repeated predictions reuse an approved model; optional retraining is a separate action.
 1. Establish initial dataset/cutoff/algorithm context to check compatibility. Final store/date confirmation follows model loading in this simplified journey.
 2. If needed, Train once and Evaluate. Approve only a passing candidate; failure waits for user action, not an automatic retry loop.
-3. Confirm store and 1–48 target dates, Predict, show historical-data/non-causal promotion disclaimer, and export.
+3. Confirm store and 1â€“48 target dates, Predict, show historical-data/non-causal promotion disclaimer, and export.
 4. Optional retraining follows its own validation path while the existing active model continues serving.
 **Inputs:** dataset, cutoff, store, horizon, algorithm, saved model or job. **Outputs:** real predictions, version identity, disclaimer, CSV. **Errors:** invalid dates, unsupported stores, failed training, missing artifact, or export failure are explicit; no fake results.
 
-## D2 — Ownership and storage
+## D2 â€” Ownership and storage
 ```mermaid
 flowchart TB
     B[Browser: Next.js] -->|requests forecast| A[API: FastAPI]
@@ -97,7 +97,7 @@ A serving slot identifies dataset lineage, feature schema, algorithm selection, 
 
 Explicit LightGBM/XGBoost choices never silently switch algorithms. Auto reuses its approved winner; training compares candidates under identical splits/budgets. Stale compatible models can Predict with a visible age warning; requests do not retrain them. Missing compatible models enqueue/coalesce an initial training job and return a durable waiting forecast.
 
-## Planned API contracts — not code
+## Planned API contracts â€” not code
 All dates are ISO business dates; event timestamps are UTC ISO 8601. IDs are opaque strings. Errors: `{error: {code, message, details, request_id}}`; no secrets. Requests carrying Idempotency-Key return the original operation for identical payload and 409 for changed payload. Lists are paginated.
 
 | Endpoint | Request and response contract |
@@ -146,7 +146,7 @@ One Docker PostgreSQL instance hosts separate app/MLflow databases and credentia
 | Worker process/lease | No process persistence | expire lease, mark interrupted, retry as a new audited attempt |
 
 ## Non-diagram example
-A manager imports historical Rossmann data and chooses July 31, 2015, a store, LightGBM, and a seven-day horizon. With no suitable model the worker trains only on labels available by that cutoff, evaluates earlier chronological folds, and approves only a valid candidate. The model directly predicts August 1–7 using July 31/earlier observed sales and documented known-at-cutoff calendar/plans. A second request reuses it without training. A later explicit label import can enable optional retraining while the active model keeps serving. This is an illustrative journey, not a measured run or accuracy claim.
+A manager imports historical Rossmann data and chooses July 31, 2015, a store, LightGBM, and a seven-day horizon. With no suitable model the worker trains only on labels available by that cutoff, evaluates earlier chronological folds, and approves only a valid candidate. The model directly predicts August 1â€“7 using July 31/earlier observed sales and documented known-at-cutoff calendar/plans. A second request reuses it without training. A later explicit label import can enable optional retraining while the active model keeps serving. This is an illustrative journey, not a measured run or accuracy claim.
 
 ## Risks and later checks
 Measure RAM/CPU, select exact dependency pins, test snapshot parity and cutoff invariance, validate idempotency, restart recovery, concurrent approval/rollback, missing artifacts, and prediction during training. Historical availability assumptions and cross-store backup/reconciliation require explicit verification. No runtime readiness is claimed.
@@ -158,3 +158,11 @@ The sole installable Python package root is src/retailforecast. services/api/mai
 PostgreSQL now runs alone in digest-pinned Docker Compose; API/web and CSV ingestion remain host processes. SQLAlchemy models, Alembic migrations, Pydantic source/request/report contracts and synchronous validate-first CLI ingestion are implemented. The physical actuals table is daily_sales; unlabeled competition plans are forecast_inputs; forecast request metadata is forecast_runs. sample_submission is a preserved/validated export template only. DATA_DICTIONARY.md maps source fields and normalized entity keys; INGESTION.md defines transactions and commands.
 
 Creating MLflow's separate backend is deferred until its service exists (decision 0005). DVC snapshots, serving-slot generations/audit, HTTP upload endpoints, job workers, model lifecycle execution and forecasting remain planned. A partial unique model scope index enforces the minimum one-active constraint without pretending approval/rollback services are implemented. Forecast point model/cutoff/created-at fields are inherited through their normalized parent run.
+
+
+## Phase 5 file artifact boundary
+DVC now versions raw and normalized files independently of PostgreSQL. configs/data.yaml selects synthetic/real profiles; validation yields typed Parquet, receipts and portable manifests. Git tracks code/config/pointers, SQL owns transactions, and future MLflow owns runs/model references. Only ignored config.local contains the outside-repository local remote path. See DATA_VERSIONING.md and decision 0006. No feature/model/scheduler/API implementation is added.
+
+## Phase 6 feature boundary
+
+The shared features package implements direct 1..48-day rows for future training, backtests and inference. The verified Parquet adapter carries dataset identity and explicit knowledge-time assumptions. Metadata and target plans are as-of joins; future actual labels are attached only outside predictors. Training-fitted preprocessing is serializable JSON and never refitted at serving. FEATURES.md, FEATURE_REGISTRY.md and decision 0007 define this implemented boundary. No estimator, worker, scoring runner or HTTP feature/forecast endpoint has been added.

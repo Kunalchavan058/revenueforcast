@@ -3,7 +3,7 @@
 ## In plain English
 History records what happened, while Features describe what the model was allowed to know. A cutoff separates available observations from future answers. Training learns earlier examples and evaluation checks hidden answers. Direct forecasts do not need intermediate future actual sales. Every input and transformation remains traceable.
 
-## D3 — Data, Features, Train, Evaluate
+## D3 â€” Data, Features, Train, Evaluate
 ```mermaid
 flowchart LR
     R[Rossmann CSV and imports] -->|validate columns and grain| V[Schema validation]
@@ -31,7 +31,7 @@ flowchart LR
 5. Record genuine metrics/baseline; lifecycle approval remains a separate gate.
 **Inputs:** immutable CSV snapshot, metadata, label availability, origins, configuration. **Outputs:** fold-local preprocessing, Features, model candidate, metrics. **Errors:** duplicate rows, invalid dates/stores, ambiguous availability, insufficient history/label coverage, or leakage checks stop publication or yield explicitly declared coverage exclusions.
 
-## D4 — Direct forecast timeline
+## D4 â€” Direct forecast timeline
 ```mermaid
 flowchart LR
     H[Observed Sales: July 31 and earlier] -->|build lags and rolling windows| F[Features available at cutoff]
@@ -49,11 +49,11 @@ flowchart LR
     class P,O approved;
     class C,N warning;
 ```
-**Story:** Predict August 7 using July 31's knowledge without waiting for August 1–6 actuals.
+**Story:** Predict August 7 using July 31's knowledge without waiting for August 1â€“6 actuals.
 1. Set cutoff_date to 2015-07-31 and bound all observed inputs by that date and availability.
-2. Compute store-specific lags/windows ending at cutoff; a seven-day inclusive window covers July 25–31.
+2. Compute store-specific lags/windows ending at cutoff; a seven-day inclusive window covers July 25â€“31.
 3. Set horizon_days to 7 and target_date to 2015-08-07, adding target calendar and only plans known at cutoff.
-4. Predict directly from the saved model; repeat independently for the requested horizons 1–48 without reading intermediate future actuals.
+4. Predict directly from the saved model; repeat independently for the requested horizons 1â€“48 without reading intermediate future actuals.
 **Inputs:** cutoff-safe history, known plans/calendar, compatible model, horizon. **Outputs:** dated estimates and model/cutoff provenance. **Errors:** a model trained beyond cutoff, missing required history, or unavailable target inputs fails validation or uses a documented trained missingness policy; never future actual filling.
 
 ## Availability and provenance
@@ -68,8 +68,16 @@ RMSPE excludes zero actual Sales and reports exclusions; MAE includes zeros. All
 
 Known closure may force zero only when closure is documented as known at cutoff; never derive future closure from future Sales. Use the same documented non-negative clamp during evaluation and serving. Missing dates remain missing labels, not synthetic zero actuals. Technical approval requires finite metrics/predictions, reproducible artifacts, and complete declared supported coverage; it does not promise improvement over baseline. Display unfavorable comparisons honestly.
 
-## Planned leakage checks
-Hand-check July 31/August 7, horizons 1/48, inclusive windows, store isolation, and unknown categories. Mutating all post-cutoff Sales/Customers must not change Features or fixed-model predictions. Reject models trained beyond the requested cutoff. Test per-fold preprocessing and availability-aware joins. These are later implementation obligations, not executed tests in this phase.
+## Leakage checks
+Hand-check July 31/August 7, horizons 1/48, inclusive windows, store isolation, and unknown categories. Mutating all post-cutoff Sales/Customers must not change Features or fixed-model predictions. Reject models trained beyond the requested cutoff. Test per-fold preprocessing and availability-aware joins. Phase 6 implements feature/preprocessing invariance, horizon/date alignment and as-of join tests. Estimator trained-through checks and full evaluation runners remain future work.
 
 ## Phase 4 ingestion status
 Source validation, versioned store joins, immutable raw-file preservation and PostgreSQL publication are implemented; D3's downstream feature preprocessing, backtests, Train/Evaluate are still planned. Missing required holiday flags are rejected rather than assumed zero. Versioned train actuals and unlabeled test inputs occupy separate tables; sample submission never supplies labels. Known-source quirks and full missingness/checksum reports are documented in DATA_DICTIONARY.md. No engineered features are produced by ingestion.
+
+
+## Phase 5 normalization
+DVC versions file artifacts, not PostgreSQL rows. Bounded Parquet conversion changes source names/types without imputing values, adding features or substituting future labels. forecast_inputs excludes Sales/Customers; template placeholders are renamed explicitly. Context-bound validation/normalization receipts precede a verified content manifest. D3's backtests/Train/Evaluate remain planned; DATA_VERSIONING.md describes implemented commands.
+
+## Phase 6 as-of execution
+
+D3 Features and D4 direct feature rows now use one FeatureBuilder. Sales require date and availability at/before each origin. Exact calendar lags and inclusive windows stay within stores; plans/metadata use the latest eligible full revision. Supervised rows attach aligned target labels only if available by the fold label end. Fitted preprocessing is saved and reused; no estimator is implemented. See FEATURES.md for the worked trace and FEATURE_REGISTRY.md for generated contracts. Earlier phase status sections describe their historical delivery scope.
