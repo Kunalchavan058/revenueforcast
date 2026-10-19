@@ -1,0 +1,20 @@
+name: retailforecast
+services:
+  postgres:
+    image: postgres:17-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    environment:
+      POSTGRES_USER: retailforecast
+      POSTGRES_DB: retailforecast
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the root .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U retailforecast -d retailforecast"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 512m
+volumes:
+  postgres_data:
