@@ -1,1 +1,1 @@
-"""Reserved features boundary; no implementation in the scaffold phase."""
+"""Shared as-of feature building, registry and persisted training preprocessing."""
