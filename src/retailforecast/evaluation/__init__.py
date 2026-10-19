@@ -1,1 +1,1 @@
-"""Reserved evaluation boundary; no implementation in the scaffold phase."""
+"""Algorithm-independent rolling-origin evaluation and auditable score artifacts."""

@@ -166,6 +166,21 @@ class FeatureBuilder:
                 return float((key.cutoff_date - day).days)
         return None
 
+    def history_at_cutoff(
+        self, store_ids: Iterable[int], cutoff_date: date
+    ) -> Iterator[SalesObservation]:
+        """Yield sorted immutable actuals known by cutoff for model fitting only.
+
+        The evaluation runner hands this filtered view to a forecaster, never the
+        complete builder or its future label index. Delayed reports remain hidden.
+        """
+        for store_id in sorted(set(store_ids)):
+            dates = self._dates.get(store_id, [])
+            for day in dates[: bisect_right(dates, cutoff_date)]:
+                observation = self._sales[store_id][day]
+                if observation.available_as_of <= cutoff_date:
+                    yield observation
+
     def iter_features(self, keys: Iterable[ForecastKey]) -> Iterator[FeatureRow]:
         """Yield shared inference/backtest inputs without materializing a Cartesian dataset."""
         for key in keys:

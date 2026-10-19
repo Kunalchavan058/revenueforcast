@@ -1,1 +1,1 @@
-"""Reserved forecasting boundary; no implementation in the scaffold phase."""
+"""Deterministic baseline forecasts; advanced model inference remains future work."""
