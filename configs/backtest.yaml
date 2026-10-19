@@ -1,0 +1,15 @@
+schema_version: 1
+horizon_days: 48
+development_folds: 3
+seasonal_weeks: 8
+store_ids: [1, 2, 3]
+seed: 42
+closure_policy: known_plan_zero
+assumptions:
+  explanation: >-
+    Historical simulation: labels available on business date; archived store
+    metadata assumed known from 2013-01-01. No future target plans asserted known.
+    Archives do not prove historical publication dates.
+  metadata_known_as_of: "2013-01-01"
+  calendar_known_as_of: null
+  sales_delay_days: 0
