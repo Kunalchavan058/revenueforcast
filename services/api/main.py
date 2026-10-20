@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from forecasts import router as forecasts_router
 from models import router as models_router
 from pydantic import BaseModel
+from reporting import router as reporting_router
 from sqlalchemy.exc import SQLAlchemyError
 from training_jobs import router as training_jobs_router
 
@@ -49,6 +50,7 @@ def create_app() -> FastAPI:
         return JSONResponse(status_code=503, content=body.model_dump(mode="json"))
 
     application.include_router(training_jobs_router)
+    application.include_router(reporting_router)
     application.include_router(forecasts_router)
     application.include_router(models_router)
     return application

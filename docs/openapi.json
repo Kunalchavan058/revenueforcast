@@ -389,6 +389,476 @@
         }
       }
     },
+    "/api/v1/history/coverage": {
+      "get": {
+        "tags": [
+          "business reporting"
+        ],
+        "summary": "Coverage",
+        "description": "Inspect the latest actual import or an explicitly pinned source.",
+        "operationId": "coverage_api_v1_history_coverage_get",
+        "parameters": [
+          {
+            "name": "dataset_version_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dataset Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/history/summary": {
+      "get": {
+        "tags": [
+          "business reporting"
+        ],
+        "summary": "Summary",
+        "description": "Compute actual totals, calendar series, store and weekday comparisons from SQL.",
+        "operationId": "summary_api_v1_history_summary_get",
+        "parameters": [
+          {
+            "name": "dataset_version_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Dataset Version Id"
+            }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "End Date"
+            }
+          },
+          {
+            "name": "store_ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "minItems": 1,
+              "maxItems": 32,
+              "title": "Store Ids"
+            }
+          },
+          {
+            "name": "frequency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "day",
+                "week",
+                "month"
+              ],
+              "type": "string",
+              "default": "day",
+              "title": "Frequency"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistorySummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/history/download.csv": {
+      "get": {
+        "tags": [
+          "business reporting"
+        ],
+        "summary": "Download History",
+        "description": "Download exactly the same filter/grain and missingness used by the business dashboard.",
+        "operationId": "download_history_api_v1_history_download_csv_get",
+        "parameters": [
+          {
+            "name": "dataset_version_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Dataset Version Id"
+            }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "End Date"
+            }
+          },
+          {
+            "name": "store_ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "minItems": 1,
+              "maxItems": 32,
+              "title": "Store Ids"
+            }
+          },
+          {
+            "name": "frequency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "day",
+                "week",
+                "month"
+              ],
+              "type": "string",
+              "default": "day",
+              "title": "Frequency"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forecasts/options": {
+      "get": {
+        "tags": [
+          "business reporting"
+        ],
+        "summary": "Options",
+        "description": "Read actual model/source coverage; never train or generate on page visit.",
+        "operationId": "options_api_v1_forecasts_options_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastOptions"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forecasts/{forecast_id}/view": {
+      "get": {
+        "tags": [
+          "business reporting"
+        ],
+        "summary": "View",
+        "description": "Aggregate one saved store subset with existing exact-decimal helpers, without fitting.",
+        "operationId": "view_api_v1_forecasts__forecast_id__view_get",
+        "parameters": [
+          {
+            "name": "forecast_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Forecast Id"
+            }
+          },
+          {
+            "name": "store_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Store Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastView"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/datasets/status": {
       "get": {
         "tags": [
@@ -1092,6 +1562,62 @@
         "title": "ActivationRequest",
         "description": "Require a generation token and an explicit reason to override missing metric evidence."
       },
+      "ActualPeriod": {
+        "properties": {
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "covered_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Covered From"
+          },
+          "covered_through": {
+            "type": "string",
+            "format": "date",
+            "title": "Covered Through"
+          },
+          "observed_store_days": {
+            "type": "integer",
+            "title": "Observed Store Days"
+          },
+          "expected_store_days": {
+            "type": "integer",
+            "title": "Expected Store Days"
+          },
+          "sales": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "period_start",
+          "period_end",
+          "covered_from",
+          "covered_through",
+          "observed_store_days",
+          "expected_store_days",
+          "sales"
+        ],
+        "title": "ActualPeriod",
+        "description": "Observed totals only; partial periods and missing store-days remain visible."
+      },
       "AttemptView": {
         "properties": {
           "number": {
@@ -1153,6 +1679,27 @@
         ],
         "title": "AttemptView",
         "description": "Safe summary of a fenced process attempt; no credentials or unrestricted log content."
+      },
+      "CoverageResponse": {
+        "properties": {
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceCoverage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "coverage"
+        ],
+        "title": "CoverageResponse",
+        "description": "An empty database is explicit rather than a fabricated historical range."
       },
       "CreateTrainingJob": {
         "properties": {
@@ -1564,6 +2111,61 @@
         "title": "ForecastModel",
         "description": "Pin version/generation and fitted schema so switches cannot mix model identities."
       },
+      "ForecastOptions": {
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceCoverage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stores": {
+            "items": {
+              "$ref": "#/components/schemas/StoreCoverage"
+            },
+            "type": "array",
+            "title": "Stores",
+            "default": []
+          },
+          "sales_delay_days": {
+            "type": "integer",
+            "title": "Sales Delay Days",
+            "default": 0
+          },
+          "max_stores": {
+            "type": "integer",
+            "title": "Max Stores",
+            "default": 32
+          },
+          "max_horizon": {
+            "type": "integer",
+            "title": "Max Horizon",
+            "default": 48
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model",
+          "coverage"
+        ],
+        "title": "ForecastOptions",
+        "description": "Read-only saved-model context; there is no training or forecast side effect."
+      },
       "ForecastRequest": {
         "properties": {
           "store_ids": {
@@ -1722,6 +2324,55 @@
         "title": "ForecastTotals",
         "description": "Daily, ISO-week and calendar-month sums over the requested store cohort."
       },
+      "ForecastView": {
+        "properties": {
+          "forecast_id": {
+            "type": "string",
+            "title": "Forecast Id"
+          },
+          "store_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Store Ids"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastDay"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ForecastTotals"
+          },
+          "actual_data_cutoff": {
+            "type": "string",
+            "format": "date",
+            "title": "Actual Data Cutoff"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryCoverage"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "forecast_id",
+          "store_ids",
+          "points",
+          "totals",
+          "actual_data_cutoff",
+          "history"
+        ],
+        "title": "ForecastView",
+        "description": "Display-only store subset; CSV still exports the complete immutable saved forecast."
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1839,6 +2490,175 @@
         ],
         "title": "HistoryCoverage",
         "description": "Observed business-date coverage actually visible to this request, per store."
+      },
+      "HistoryQuery": {
+        "properties": {
+          "dataset_version_id": {
+            "type": "string",
+            "title": "Dataset Version Id"
+          },
+          "store_ids": {
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Store Ids"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "day",
+              "week",
+              "month"
+            ],
+            "title": "Frequency",
+            "default": "day"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dataset_version_id",
+          "store_ids",
+          "start_date",
+          "end_date"
+        ],
+        "title": "HistoryQuery",
+        "description": "Inclusive calendar interval and explicit bounded store cohort in one immutable source."
+      },
+      "HistorySummary": {
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/HistoryQuery"
+          },
+          "checksum": {
+            "type": "string",
+            "title": "Checksum"
+          },
+          "observed_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed From"
+          },
+          "observed_through": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Through"
+          },
+          "selected_store_count": {
+            "type": "integer",
+            "title": "Selected Store Count"
+          },
+          "observed_store_days": {
+            "type": "integer",
+            "title": "Observed Store Days"
+          },
+          "expected_store_days": {
+            "type": "integer",
+            "title": "Expected Store Days"
+          },
+          "missing_store_days": {
+            "type": "integer",
+            "title": "Missing Store Days"
+          },
+          "total_sales": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Sales"
+          },
+          "open_store_days": {
+            "type": "integer",
+            "title": "Open Store Days"
+          },
+          "closed_store_days": {
+            "type": "integer",
+            "title": "Closed Store Days"
+          },
+          "closed_positive_sales_days": {
+            "type": "integer",
+            "title": "Closed Positive Sales Days"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/ActualPeriod"
+            },
+            "type": "array",
+            "title": "Series"
+          },
+          "by_store": {
+            "items": {
+              "$ref": "#/components/schemas/StoreActual"
+            },
+            "type": "array",
+            "title": "By Store"
+          },
+          "weekdays": {
+            "items": {
+              "$ref": "#/components/schemas/WeekdayActual"
+            },
+            "type": "array",
+            "title": "Weekdays"
+          },
+          "sales_unit": {
+            "type": "string",
+            "title": "Sales Unit",
+            "default": "source Sales units; currency unspecified"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "checksum",
+          "observed_from",
+          "observed_through",
+          "selected_store_count",
+          "observed_store_days",
+          "expected_store_days",
+          "missing_store_days",
+          "total_sales",
+          "open_store_days",
+          "closed_store_days",
+          "closed_positive_sales_days",
+          "series",
+          "by_store",
+          "weekdays"
+        ],
+        "title": "HistorySummary",
+        "description": "Read-only aggregates for one exact source/filter, not forecast evaluation metrics."
       },
       "JobView": {
         "properties": {
@@ -2352,6 +3172,120 @@
         "title": "SlotView",
         "description": "Generation is the required compare-and-swap token for every serving mutation."
       },
+      "SourceCoverage": {
+        "properties": {
+          "dataset_version_id": {
+            "type": "string",
+            "title": "Dataset Version Id"
+          },
+          "checksum": {
+            "type": "string",
+            "title": "Checksum"
+          },
+          "observed_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Observed From"
+          },
+          "observed_through": {
+            "type": "string",
+            "format": "date",
+            "title": "Observed Through"
+          },
+          "store_count": {
+            "type": "integer",
+            "title": "Store Count"
+          },
+          "default_store_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Default Store Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dataset_version_id",
+          "checksum",
+          "observed_from",
+          "observed_through",
+          "store_count",
+          "default_store_ids"
+        ],
+        "title": "SourceCoverage",
+        "description": "Observed-date coverage, unrelated to import timestamp or wall-clock date."
+      },
+      "StoreActual": {
+        "properties": {
+          "store_id": {
+            "type": "integer",
+            "title": "Store Id"
+          },
+          "sales": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales"
+          },
+          "observed_store_days": {
+            "type": "integer",
+            "title": "Observed Store Days"
+          },
+          "open_store_days": {
+            "type": "integer",
+            "title": "Open Store Days"
+          },
+          "closed_store_days": {
+            "type": "integer",
+            "title": "Closed Store Days"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "store_id",
+          "sales",
+          "observed_store_days",
+          "open_store_days",
+          "closed_store_days"
+        ],
+        "title": "StoreActual",
+        "description": "Per-store comparison retains zero sales and explicit missing coverage."
+      },
+      "StoreCoverage": {
+        "properties": {
+          "store_id": {
+            "type": "integer",
+            "title": "Store Id"
+          },
+          "observed_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Observed From"
+          },
+          "observed_through": {
+            "type": "string",
+            "format": "date",
+            "title": "Observed Through"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "store_id",
+          "observed_from",
+          "observed_through"
+        ],
+        "title": "StoreCoverage",
+        "description": "History actually present for a store in the active compatible source."
+      },
       "StoreInfo": {
         "properties": {
           "store_id": {
@@ -2629,6 +3563,50 @@
         ],
         "title": "VersionView",
         "description": "Stable inspectable model metadata with no database credentials or binary payloads."
+      },
+      "WeekdayActual": {
+        "properties": {
+          "weekday": {
+            "type": "integer",
+            "title": "Weekday"
+          },
+          "observations": {
+            "type": "integer",
+            "title": "Observations"
+          },
+          "sales": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales"
+          },
+          "mean_sales": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Sales"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "weekday",
+          "observations",
+          "sales",
+          "mean_sales"
+        ],
+        "title": "WeekdayActual",
+        "description": "Mean per observed store-day includes closed-store zeros; missing days are excluded."
       }
     }
   }

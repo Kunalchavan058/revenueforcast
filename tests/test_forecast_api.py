@@ -505,3 +505,39 @@ def test_negative_output_uses_evaluated_policy(
     )
     assert response.totals.predicted_sales == 0
     assert any("clipped" in warning for warning in response.warnings)
+
+
+def test_dashboard_options_and_saved_store_views(
+    client: TestClient, service: ForecastService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dashboard setup/subset views reuse saved weights and exact totals, never training."""
+
+    def forbid_fit(*args: object, **kwargs: object) -> None:
+        raise AssertionError("Dashboard must never train")
+
+    monkeypatch.setattr(NativeTreeAdapter, "fit", forbid_fit)
+    setup = client.get("/api/v1/forecasts/options")
+    assert setup.status_code == 200, setup.text
+    options = setup.json()
+    assert options["model"]["version_id"] == service.registry.slot().active_model_version_id
+    assert {row["store_id"] for row in options["stores"]} == {9001, 9002}
+    created = client.post("/api/v1/forecasts", json=request_body(7)).json()
+    saved = client.get(
+        f"/api/v1/forecasts/{created['forecast_id']}/view", params={"store_id": 9001}
+    )
+    assert saved.status_code == 200, saved.text
+    view = saved.json()
+    expected = [row for row in created["points"] if row["store_id"] == 9001]
+    assert view["points"] == expected
+    assert Decimal(view["totals"]["predicted_sales"]) == sum(
+        Decimal(row["predicted_sales"]) for row in expected
+    )
+    assert sum(Decimal(row["predicted_sales"]) for row in view["totals"]["weekly"]) == Decimal(
+        view["totals"]["predicted_sales"]
+    )
+    assert (
+        client.get(
+            f"/api/v1/forecasts/{created['forecast_id']}/view", params={"store_id": 99999}
+        ).status_code
+        == 422
+    )

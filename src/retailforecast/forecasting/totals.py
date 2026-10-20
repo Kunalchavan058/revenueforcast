@@ -20,6 +20,18 @@ from retailforecast.forecasting.contracts import (
 )
 
 
+def period_bounds(target: date, frequency: Literal["day", "week", "month"]) -> tuple[date, date]:
+    """Shared calendar bounds for observed/predicted totals; weeks start on Monday."""
+    if frequency == "week":
+        start = target - timedelta(days=target.weekday())
+        return start, start + timedelta(days=6)
+    if frequency == "month":
+        return target.replace(day=1), target.replace(
+            day=calendar.monthrange(target.year, target.month)[1]
+        )
+    return target, target
+
+
 def period_totals(
     points: Sequence[ForecastDay], frequency: Literal["day", "week", "month"]
 ) -> tuple[PeriodTotal, ...]:
@@ -27,13 +39,7 @@ def period_totals(
     groups: dict[tuple[date, date], list[ForecastDay]] = defaultdict(list)
     for point in points:
         target = point.target_date
-        start = end = target
-        if frequency == "week":
-            start = target - timedelta(days=target.weekday())
-            end = start + timedelta(days=6)
-        elif frequency == "month":
-            start = target.replace(day=1)
-            end = target.replace(day=calendar.monthrange(target.year, target.month)[1])
+        start, end = period_bounds(target, frequency)
         groups[(start, end)].append(point)
     return tuple(
         PeriodTotal(
