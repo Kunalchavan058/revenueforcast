@@ -23,6 +23,7 @@ jobs:
       - run: uv run python -m retailforecast.features.registry --check
       - run: uv run python scripts/configure_database.py
       - run: docker compose --env-file .env -f infra/compose.yaml up -d --wait
+      - run: uv run python scripts/configure_mlflow.py
       - run: uv run alembic upgrade head
       - run: uv run alembic check
       - run: npm run check

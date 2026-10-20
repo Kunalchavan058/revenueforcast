@@ -78,7 +78,7 @@ def calculate_metrics(points: Sequence[PredictionPoint]) -> Metrics:
     )
 
 
-def summarize(points: Sequence[PredictionPoint]) -> list[Segment]:
+def summarize(points: Sequence[PredictionPoint], *, exact_horizons: bool = False) -> list[Segment]:
     """Pool common-support points by method, fold, store, horizon, context, week and month."""
     groups: dict[tuple[str, str, str], list[PredictionPoint]] = defaultdict(list)
     for point in points:
@@ -90,7 +90,7 @@ def summarize(points: Sequence[PredictionPoint]) -> list[Segment]:
             if point.observed_open
             else "closed"
         )
-        dimensions = (
+        dimensions: tuple[tuple[str, str], ...] = (
             ("aggregate", "all"),
             ("fold", point.fold_id),
             ("store", str(point.store_id)),
@@ -99,6 +99,8 @@ def summarize(points: Sequence[PredictionPoint]) -> list[Segment]:
             ("week", f"{iso.year}-W{iso.week:02d}"),
             ("month", point.target_date.strftime("%Y-%m")),
         )
+        if exact_horizons:
+            dimensions += (("horizon_day", str(point.horizon_days)),)
         for axis, value in dimensions:
             groups[(point.method, axis, value)].append(point)
     return [

@@ -1,1 +1,1 @@
-"""Reserved training boundary; no implementation in the scaffold phase."""
+"""Bounded chronological CPU training, local MLflow logs and portable model bundles."""

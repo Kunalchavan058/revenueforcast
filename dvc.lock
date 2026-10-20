@@ -18,8 +18,8 @@ stages:
       size: 1636
     - path: uv.lock
       hash: md5
-      md5: 2570336134994bfaca66072922d3b224
-      size: 377922
+      md5: ba70608f030ebcaa37d09f64b56d053f
+      size: 434017
     params:
       configs/data.yaml:
         profiles.synthetic:
@@ -68,8 +68,8 @@ stages:
       size: 10340
     - path: uv.lock
       hash: md5
-      md5: 2570336134994bfaca66072922d3b224
-      size: 377922
+      md5: ba70608f030ebcaa37d09f64b56d053f
+      size: 434017
     params:
       configs/data.yaml:
         processing:
@@ -98,7 +98,7 @@ stages:
     outs:
     - path: data/processed/synthetic/validation.json
       hash: md5
-      md5: 86bb7e92529d65eb714ab8f27dd32de3
+      md5: 3b739201dae3e5cf951044833d98a8f1
       size: 3754
   normalize@synthetic:
     cmd: uv run --locked python -m retailforecast.data.file_pipeline normalize
@@ -106,7 +106,7 @@ stages:
     deps:
     - path: data/processed/synthetic/validation.json
       hash: md5
-      md5: 86bb7e92529d65eb714ab8f27dd32de3
+      md5: 3b739201dae3e5cf951044833d98a8f1
       size: 3754
     - path: data/raw/synthetic
       hash: md5
@@ -135,8 +135,8 @@ stages:
       size: 10340
     - path: uv.lock
       hash: md5
-      md5: 2570336134994bfaca66072922d3b224
-      size: 377922
+      md5: ba70608f030ebcaa37d09f64b56d053f
+      size: 434017
     params:
       configs/data.yaml:
         processing:
@@ -165,7 +165,7 @@ stages:
     outs:
     - path: data/processed/synthetic/tables
       hash: md5
-      md5: 85dfeec9446051dc9bdcba44889ef597.dir
+      md5: c105c3b0df0970f0414846bc95d2fc20.dir
       size: 8846
       nfiles: 5
   manifest@synthetic:
@@ -174,12 +174,12 @@ stages:
     deps:
     - path: data/processed/synthetic/tables
       hash: md5
-      md5: 85dfeec9446051dc9bdcba44889ef597.dir
+      md5: c105c3b0df0970f0414846bc95d2fc20.dir
       size: 8846
       nfiles: 5
     - path: data/processed/synthetic/validation.json
       hash: md5
-      md5: 86bb7e92529d65eb714ab8f27dd32de3
+      md5: 3b739201dae3e5cf951044833d98a8f1
       size: 3754
     - path: data/raw/synthetic
       hash: md5
@@ -208,8 +208,8 @@ stages:
       size: 10340
     - path: uv.lock
       hash: md5
-      md5: 2570336134994bfaca66072922d3b224
-      size: 377922
+      md5: ba70608f030ebcaa37d09f64b56d053f
+      size: 434017
     params:
       configs/data.yaml:
         processing:
@@ -238,7 +238,7 @@ stages:
     outs:
     - path: data/processed/synthetic/manifest.json
       hash: md5
-      md5: 8a0954a111b5b1f31399316eee33ae69
+      md5: c8895ac44fad1a6db5b74f7b95f74623
       size: 3894
   validate@rossmann:
     cmd: uv run --locked python -m retailforecast.data.file_pipeline validate
@@ -275,8 +275,8 @@ stages:
       size: 10340
     - path: uv.lock
       hash: md5
-      md5: 2570336134994bfaca66072922d3b224
-      size: 377922
+      md5: ba70608f030ebcaa37d09f64b56d053f
+      size: 434017
     params:
       configs/data.yaml:
         processing:
@@ -305,7 +305,7 @@ stages:
     outs:
     - path: data/processed/rossmann/validation.json
       hash: md5
-      md5: 89d90cb2f65d2b26e2f4f1e0900643b5
+      md5: a16145d04f0453f13a840c5c48efe652
       size: 3880
   normalize@rossmann:
     cmd: uv run --locked python -m retailforecast.data.file_pipeline normalize
@@ -313,7 +313,7 @@ stages:
     deps:
     - path: data/processed/rossmann/validation.json
       hash: md5
-      md5: 89d90cb2f65d2b26e2f4f1e0900643b5
+      md5: a16145d04f0453f13a840c5c48efe652
       size: 3880
     - path: data/raw/rossmann
       hash: md5
@@ -342,8 +342,8 @@ stages:
       size: 10340
     - path: uv.lock
       hash: md5
-      md5: 2570336134994bfaca66072922d3b224
-      size: 377922
+      md5: ba70608f030ebcaa37d09f64b56d053f
+      size: 434017
     params:
       configs/data.yaml:
         processing:
@@ -372,7 +372,7 @@ stages:
     outs:
     - path: data/processed/rossmann/tables
       hash: md5
-      md5: e5ee7e5e63952c55e0e15d615b144a42.dir
+      md5: 790bfe67410dbfa2f8bc4d03ed072c8d.dir
       size: 7007287
       nfiles: 5
   manifest@rossmann:
@@ -381,12 +381,12 @@ stages:
     deps:
     - path: data/processed/rossmann/tables
       hash: md5
-      md5: e5ee7e5e63952c55e0e15d615b144a42.dir
+      md5: 790bfe67410dbfa2f8bc4d03ed072c8d.dir
       size: 7007287
       nfiles: 5
     - path: data/processed/rossmann/validation.json
       hash: md5
-      md5: 89d90cb2f65d2b26e2f4f1e0900643b5
+      md5: a16145d04f0453f13a840c5c48efe652
       size: 3880
     - path: data/raw/rossmann
       hash: md5
@@ -415,8 +415,8 @@ stages:
       size: 10340
     - path: uv.lock
       hash: md5
-      md5: 2570336134994bfaca66072922d3b224
-      size: 377922
+      md5: ba70608f030ebcaa37d09f64b56d053f
+      size: 434017
     params:
       configs/data.yaml:
         processing:
@@ -445,5 +445,5 @@ stages:
     outs:
     - path: data/processed/rossmann/manifest.json
       hash: md5
-      md5: f6e93fdfc9b047f5798701be7134a287
+      md5: 6550f9bb5db03949ec135d84efa9a47b
       size: 3906

@@ -166,6 +166,20 @@ class FeatureBuilder:
                 return float((key.cutoff_date - day).days)
         return None
 
+    def with_history(self, observations: Iterable[SalesObservation]) -> FeatureBuilder:
+        """Reuse as-of metadata/plans with an explicitly filtered fitting history.
+
+        A training adapter supplies TrainingHistory, so target labels beyond its
+        fold end are physically absent. Existing per-row knowledge gates still
+        apply to metadata/plans at every earlier training origin.
+        """
+        return FeatureBuilder(
+            observations,
+            (item for snapshots in self._stores.values() for item in snapshots),
+            (item for revisions in self._plans.values() for item in revisions),
+            context=self.context,
+        )
+
     def history_at_cutoff(
         self, store_ids: Iterable[int], cutoff_date: date
     ) -> Iterator[SalesObservation]:

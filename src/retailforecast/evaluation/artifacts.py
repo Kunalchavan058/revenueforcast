@@ -83,7 +83,7 @@ def build_protocol(
     )
     files = [
         path
-        for package in ("data", "features", "evaluation", "forecasting")
+        for package in ("data", "features", "evaluation", "forecasting", "training", "lifecycle")
         for path in (ROOT / "src" / "retailforecast" / package).glob("*.py")
     ]
     return EvaluationProtocol(
@@ -122,6 +122,8 @@ def write_results(
     points: Sequence[PredictionPoint],
     summaries: Sequence[Segment],
     selected_method: str | None,
+    *,
+    emit_selection: bool = True,
 ) -> EvaluationReport:
     """Write private result files, publishing results.json last; never overwrite an old run."""
     if output.exists():
@@ -182,7 +184,7 @@ def write_results(
         },
     )
     (output / "results.json").write_bytes(canonical_json(report.model_dump(mode="json")))
-    if stage == "development":
+    if stage == "development" and emit_selection:
         selection = SelectionRecord(
             protocol=protocol,
             selected_method=selected_method,

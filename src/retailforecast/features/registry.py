@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -328,6 +329,7 @@ PREDICTORS = tuple(item for item in FEATURE_REGISTRY if item.predictor)
 FEATURE_NAMES = tuple(item.name for item in PREDICTORS)
 
 
+@lru_cache(maxsize=1)
 def registry_fingerprint() -> str:
     """Hash the complete registry, including policies and stable predictor ordering."""
     return content_hash([item.model_dump(mode="json") for item in FEATURE_REGISTRY])
