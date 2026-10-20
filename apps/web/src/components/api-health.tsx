@@ -52,7 +52,7 @@ export function ApiHealth(): React.JSX.Element {
       </p>
       {state === "connected" && (
         <p className="text-sm text-muted-foreground">
-          The service is responding. Forecasting is not implemented yet.
+          The service is responding. Model availability is checked separately.
         </p>
       )}
       {state === "offline" && (
