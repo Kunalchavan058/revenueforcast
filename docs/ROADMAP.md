@@ -19,7 +19,8 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Rolling-origin evaluation, deterministic baselines and reproducible score artifacts (Phase 7).
 - [x] CPU XGBoost/LightGBM/Auto training, bounded tuning and local MLflow (Phase 8).
 - [x] Model registry/active-model reuse and forecast API/persistence (Phases 9-10).
-- [ ] Forecast UI, explanations, exports, and run/version history.
+- [x] Responsive UI/design foundation and shared accessible presentation components (Phase 12).
+- [ ] Full forecast builder/results, explanations, exports, and run/version history pages.
 - [x] Durable training jobs, explicit new-label ingestion, minimal training onboarding and optional local schedules (Phase 11).
 - [ ] End-to-end acceptance, resource checks, demo, and portfolio documentation.
 
@@ -160,3 +161,27 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Migration head/schema verified; original real source, model pointer and final-holdout reservation preserved.
 - [x] Operator guide, current contracts/diagrams, decision 0013 and Phase 11 report/log updated.
 - [x] Stop before full forecast/settings UI, schedule-performance replay, unrelated-lineage migration or final release; no commit/push.
+
+
+## Phase 12 - Frontend design system and UX foundations
+
+- [x] Six-destination responsive navigation, persistent real dataset/model/API context and semantic page shell.
+- [x] Overview uses actual metadata; Model Studio preserves real explicit training; other destinations have planned-workflow empty states.
+- [x] Quiet high-contrast light theme, 8px layout scale, local shadcn/ui primitives and keyboard/touch targets.
+- [x] All ten requested shared components, typed API transport/catalog contracts and consistent source-date/unit formatting.
+- [x] Lazy modular ECharts renderer, separate actual/predicted lines, missing gaps and accessible data table; no fabricated plot.
+- [x] Component state tests, real browser navigation, keyboard, mobile overflow and automated accessibility checks.
+- [x] Next.js build, lint/types, documentation/wireframes/decision and representative actual-state screenshots verified.
+- [x] Stop before complete feature workflows, hosted demo, backend changes or model/data work; no commit/push.
+
+
+## Phase 13 - Business Overview and Forecast dashboard
+
+- [x] Exact SQL historical coverage/sales, calendar series, store/weekday patterns and reliable open/closed counts.
+- [x] Source-based date defaults, bounded multi-store/date filters, missingness and matching observed CSV.
+- [x] Saved-model-only forecast form, selected-store cutoff constraints, 1–48 days and explicit generation.
+- [x] Real results, returned version/as-of, actual/predicted chart boundary, per-store/weekly saved views and full saved CSV.
+- [x] No-model/history/error states, plain Sales units and estimate disclaimers; no planning decisions or hidden training.
+- [x] Hand-computed real-PostgreSQL, frontend request/render/no-training, browser/dev, accessibility and quality checks.
+- [x] Contracts/OpenAPI, design decisions, documentation, real screenshots and evidence log updated.
+- [x] Stop before experiment/feature/settings workflows, new training, holdout scoring or deployment; no commit/push.

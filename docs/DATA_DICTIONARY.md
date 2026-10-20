@@ -128,3 +128,10 @@ Source and engineered fields remain distinct. Daily/weekly/monthly totals derive
 | forecast data.feature_context_dataset_fingerprint | saved feature context, separately exposing observed append-only source identity/checksum/history coverage |
 
 Job state is distinct from model role: succeeded training can leave a candidate rejected or pending while the incumbent stays active. Skipped does not create a training attempt or model version. File materialization retains exact raw/Parquet hashes and binds its export checksum back to the pinned business source/job; PostgreSQL still contains no serialized model bytes. SQL snapshot exports may legitimately contain empty remaining test/template tables after their dates become actual; no future row or label is fabricated. Original competition four-file import remains strict. Full operator contracts and protected-history fitting policy are in TRAINING_JOBS.md.
+
+
+## Phase 13 descriptive dashboard fields
+
+Business reporting derives total_sales, calendar period Sales, per-store totals, weekday means, observed/expected/missing store-days and historical open/closed counts from DailySale only. These are read-only descriptive outputs, not engineered model features or forecast-error metrics. observed_from/observed_through are actual business dates; covered_from/covered_through describe the requested part of each calendar bucket. Null Sales denotes no observations; known zero Sales is preserved. closed_positive_sales_days counts retained source quirks. Weekday mean denominator is observed store-days including closed zeros. Dataset/checksum and applied filters accompany CSV.
+
+Forecast options expose verified model fit date, source and per-supported-store observed ranges plus recorded availability delay. Saved subset views return original points and shared exact totals, not new forecasts. Source Sales units have no confirmed currency. DASHBOARDS.md and generated OpenAPI define bounds and public schemas.

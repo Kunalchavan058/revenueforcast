@@ -1,6 +1,6 @@
 # Forecast API contract
 
-Phase 10 implements local prediction and persisted exports. Start PostgreSQL, apply migrations, import a dataset and activate a validated saved model first. Forecasting never launches training. The home page now includes training onboarding; forecast visualization remains deferred; use the API's Swagger UI at http://127.0.0.1:8000/docs. This is historical Rossmann data, not a current sales feed.
+Phase 10 implements local prediction and persisted exports. Start PostgreSQL, apply migrations, import a dataset and activate a validated saved model first. Forecasting never launches training. The shared UI now shows real status on every page, and Model Studio includes training onboarding; Phase 13 adds functional historical and forecast dashboards; use the API's Swagger UI at http://127.0.0.1:8000/docs. This is historical Rossmann data, not a current sales feed.
 
 ## Start and inspect
 
@@ -112,3 +112,8 @@ One explicit SQL transaction commits context and every point after prediction an
 ## Phase 11 additions
 
 TRAINING_JOBS.md defines POST/GET training-jobs, queued cancellation and GET/PUT retraining-schedule contracts. Only the standalone worker trains. Forecast requests can now follow validated append-only descendants to use fresh observed actuals, while keeping the saved model/preprocessing/schema/knowledge context. `data.dataset_version_id`, source checksum/date and per-store coverage identify the observed snapshot; `feature_context_dataset_fingerprint` identifies the saved model context. Unrelated latest imports are never selected implicitly. Historical warnings and all cutoff gates still apply. The Phase 10 example response is retained as the historical verification snapshot; the generated OpenAPI includes these additive contracts.
+
+
+## Phase 13 business dashboard additions
+
+DASHBOARDS.md defines GET /history/coverage, /history/summary, /history/download.csv, /forecasts/options and /forecasts/{id}/view. Historical report queries explicitly pin dataset/store/date/grain and preserve null/missing/closed-day semantics. Forecast options are read-only; saved views reuse exact server aggregation and never train or re-predict. The generated OpenAPI snapshot includes all additive contracts. Existing prediction request, persistence and full-cohort CSV formats remain unchanged.

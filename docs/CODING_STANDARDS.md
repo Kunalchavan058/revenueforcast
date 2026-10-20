@@ -104,3 +104,17 @@ HTTP may enqueue and inspect, never run native fitting or own recurrence timers.
 A previously withheld label is not a new source observation. Eligibility requires later selected-store labels and an unconsumed source watermark; unchanged data records a skip without fitting. Preserve append-only raw bytes/checksums/provenance and parent rows, validate before atomic publication, reject branches/corrections rather than silently merging and never label test/submission placeholders as actuals. Later refits inherit fixed development/protected calendars and remove the protected interval from the entire fitting history, including lags/rolling statistics. Cross-snapshot comparison/context binding requires verified unchanged-prefix lineage and identical knowledge/schema/cohort assumptions.
 
 Schedules use aware UTC event storage and named local calendar anchors; handle short months/DST explicitly. Advance due times and unique trigger audit atomically, record missed occurrences and bound catch-up. Browser timers may read status only. Show no-model/offline/queued states without promising readiness or cloud uptime; compare scheduling performance only through matched historical replay.
+
+
+## Frontend foundation and accessible data presentation
+
+Use shared local UI tokens and components; keep one page h1, real navigation links/aria-current, a skip link and named landmarks. Label native fields, connect validation errors and preserve source business-date strings. Use the shared Zod-validated same-origin transport, abort obsolete reads and expose independent health/dataset/model states. Loading, empty and error must not substitute zero, today, a ready model or mock results. Latest import and active serving source may differ and must remain distinguishable.
+
+Keep component loading/empty/error stories in tests, including zero versus missing data and cohort support. Chart rendering stays lazy and bounded, disposes instances/observers and names actuals/predictions separately in legend, series and accessible table. Preserve missing gaps and use line patterns as well as color. Never assume Rossmann currency or invent confidence/accuracy/growth figures. Follow UI_DESIGN.md for the 8px layout scale, high-contrast light palette, 44px control exception and accessibility review. Store representative images only from verified running real state; transport fixtures stay test-only.
+
+
+## Business reporting and interactive forecast contracts
+
+Keep historical aggregation separate from model evaluation/fitting. Reduce bounded explicit source/cohort/date filters in SQL, share calendar helpers with forecast totals and preserve exact decimal aggregation/export. Never replace absent store-days with zero or use today's date for historical defaults. State denominators, partial periods, selected-store count and closed-positive quirks. Reporting actuals are descriptive outcomes, never model inputs beyond cutoff or evaluation evidence by themselves.
+
+Keep draft filters distinct from applied/result/export context. Prediction has one explicit user action; reads/view changes must never train or re-predict. Use the returned saved model/cutoff/source for charts and metadata, physically bound display-history requests to the actual-data cutoff and mark the observed/predicted boundary. Reuse server saved-subset totals instead of duplicating decimal/calendar business logic in the browser. Test store-request changes, real response rendering, empty/error paths and absence of training calls; save screenshots only after genuine runtime verification.

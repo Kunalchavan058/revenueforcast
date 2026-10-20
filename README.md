@@ -1,6 +1,6 @@
 # RetailForecast AI
 
-A local-first retail forecasting application in development. **Phase 11 adds durable background training, optional local recurring checks and explicit additional-actuals imports.** The home page offers honest first-model/candidate onboarding. Forecast APIs provide saved-model predictions, totals and CSV; forecast charts remain future work. Historical 2015 records are not live data.
+A local-first retail forecasting application in development. **Phase 13 makes Overview and Forecasts functional:** explore imported historical actuals, then generate and export saved-model predictions for selected stores. Model Studio retains background training; other feature workflows remain explicitly planned. Historical 2015 records are not live data; no currency or operational results are invented.
 
 ## Required tools
 
@@ -10,7 +10,7 @@ A local-first retail forecasting application in development. **Phase 11 adds dur
 - Docker Desktop/Engine with Compose v2 for PostgreSQL and integration tests.
 - Git. No GPU, Colab, notebook kernel, Kubernetes, Redis, Celery, authentication or remote cloud account is required.
 
-API/web and ingestion stay on the host. Only PostgreSQL runs in Compose. The health-only UI can run without Docker; complete Python checks now require PostgreSQL.
+API/web and ingestion stay on the host. Only PostgreSQL runs in Compose. The shell and API-health indicator can run without Docker; database/model metadata then show unavailable states. Complete Python checks require PostgreSQL.
 
 ## Install â€” Windows PowerShell
 
@@ -197,3 +197,17 @@ uv run --locked python -m retailforecast.lifecycle.job_worker
 POST `/api/v1/training-jobs` with `{"algorithm":"auto"}` enqueues without blocking on fitting. GET `/api/v1/training-jobs/{id}` inspects actual stages/attempts. GET/PUT `/api/v1/retraining-schedule` defaults to manual/disabled; an enabled schedule still needs this worker and an awake laptop. No new labeled data means a recorded skip, not a new model. Existing forecasts keep using the incumbent while a candidate trains.
 
 [TRAINING_JOBS.md](docs/TRAINING_JOBS.md) provides PowerShell/bash examples, the operator `import_actuals` CSV contract, restart/idempotency and timezone rules. Validated new actuals can refresh forecast history without retraining; fixed-window candidate evaluation and model activation are separate. See [PHASE_11_REPORT.md](docs/PHASE_11_REPORT.md) for verification and limits.
+
+## Phase 12 - Interface foundation
+
+The browser now has Overview, Forecasts, Model Studio, Experiments, Feature Explorer and Data & Settings destinations. Status context stays visible on each page. Dataset as-of is the latest observed business date, never the import timestamp or today's date. Counts/model identity come from the real API. Unimplemented workflows display explicit empty states rather than sample operational results.
+
+[UI_DESIGN.md](docs/UI_DESIGN.md) documents hierarchy, desktop/mobile wireframes, design tokens, API plumbing, accessibility and chart contracts. The foundation includes native store/date controls, state components, static skeletons, consistent date/Sales-unit formatting and a lazy ECharts SVG renderer with separate actual/predicted series plus an accessible table. Rossmann currency is unspecified, so no currency symbol is invented. ECharts and browser accessibility checks are exactly locked in package-lock.json.
+
+Use the existing install/run commands above. Model Studio retains the separately started worker from Phase 11; visiting a page does not launch training or generate forecasts. See [PHASE_12_REPORT.md](docs/PHASE_12_REPORT.md) for real screenshots, validation and deferred scope. This phase does not publish a hosted demo.
+
+## Phase 13 - Business Overview and Forecasts
+
+Overview now recomputes selected-period Sales, coverage, store/weekday comparisons and open/closed history from imported SQL actuals. Choose stores and observed dates, apply filters and download matching daily/weekly/monthly totals. Forecasts supports bounded multi-store selection, observed as-of limits, 1–48 days, real saved-model results, separate actual/predicted chart series, per-store/weekly views and the existing CSV export. It never starts training; absent models link to Model Studio.
+
+[DASHBOARDS.md](docs/DASHBOARDS.md) documents exact filters, units, missingness, cutoff and export behavior. [PHASE_13_REPORT.md](docs/PHASE_13_REPORT.md) records real dev-server/browser evidence, checks and scope. Restart API/web to load the added reporting endpoints. A training worker is optional for inference; a compatible active model and imported observations are required.

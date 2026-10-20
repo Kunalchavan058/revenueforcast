@@ -15,7 +15,7 @@ uv run --locked python -m retailforecast.lifecycle.job_worker
 
 Keep that terminal/process running alongside API/web (`npm run dev`) and Docker PostgreSQL. `--once` checks schedules and processes at most one eligible attempt, then exits. Resource/search limits remain in configs/training.yaml; configs/jobs.yaml selects the worker's dev/full mode, retry/poll/heartbeat limits and catch-up batch bound. Normal API/UI users select only Auto, XGBoost or LightGBM. No GPU, cloud account, Redis, Celery or browser-owned scheduler is introduced.
 
-The home page checks the actual active pointer independently of API health. With no active model, it offers first training and explicitly says forecasts are unavailable. With an incumbent, it offers candidate training and keeps model availability separate from job progress. A queued request waits for the standalone worker; a successful training job does not necessarily mean its candidate replaced the incumbent.
+The shared status bar checks the actual active pointer independently of API health. Model Studio offers training controls: with no active model, it offers first training and explicitly says forecasts are unavailable. With an incumbent, it offers candidate training and keeps model availability separate from job progress. A queued request waits for the standalone worker; a successful training job does not necessarily mean its candidate replaced the incumbent.
 
 ## API examples
 
