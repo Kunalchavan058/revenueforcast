@@ -62,7 +62,7 @@ All opaque IDs are UUID strings. UTC timestamps record ingestion/job events; sou
 | forecast_points | PK (run_id, store_id, target_date); unique (run_id, store_id, horizon); composite FKs to run and stores | horizon 1â€“48, nonnegative predicted_sales; no prediction code implemented |
 | retraining_schedules | PK id; unique scope | manual/weekly/monthly/quarterly, timezone, next_run, enabled; scheduler not implemented |
 
-For normalization, forecast_points inherits model_version_id, cutoff_date and created_at through forecast_runs rather than copying them onto every point. Later response/export schemas join those values. Scope identifies dataset lineage (currently an independent full snapshot), feature schema, requested algorithm policy and training-cutoff policy; a PostgreSQL partial unique index allows at most one status=active model per scope. It is a constraint, not an implemented approval/rollback service. Dedicated serving-slot generation/audit and richer training lifecycle tables remain future work.
+For normalization, forecast_points inherits model_version_id, cutoff_date and created_at through forecast_runs rather than copying them onto every point. Later response/export schemas join those values. Scope identifies dataset lineage (currently an independent full snapshot), feature schema, requested algorithm policy and training-cutoff policy; a PostgreSQL partial unique index allows at most one status=active model per scope. Phase 9 adds the implemented global-v1 serving pointer and audited approval/rollback. Durable training-job execution remains future work. Historical scope proposals are superseded by MODEL_LIFECYCLE.md.
 
 ## Provenance and availability
 Individual source checksums are SHA-256 of exact bytes. Compound snapshot identity hashes a sorted filename/checksum manifest, source contract version and explicit availability policy. Validation date bounds do not change identity because they do not transform data. Identical valid sources/policy reuse the same dataset even on a later day; different bytes/policy create an independent full snapshot. No silent merge, correction overwrite, or incremental lineage inference occurs.
@@ -85,3 +85,32 @@ FeatureRow contains request identity, registered predictors and optional snapsho
 ## Phase 7 evaluation artifacts
 
 Outcome is scoring-only (store_id, target_date, actual_sales, available_as_of, observed_open). PredictionPoint keeps raw/adjusted predictions, training/cutoff dates, known_open separately from observed_open, coverage status and nullable actual/error fields. Only labeled available outcomes can produce errors; sample submission/test never supply outcomes. Segment records contain requested/labeled/scored counts, coverage, zero exclusions, real sales totals and MAE/RMSE/RMSPE. MODEL_STRATEGY.md defines their units/masks and the JSON/Parquet publication manifest. These files remain ignored under artifacts/evaluation; no business schema or migration changed.
+
+## Phase 8 supervised and model contracts
+
+PreparedData contains fold-local float32 predictors and labels plus fitted preprocessing and TrainingSpan (origin/label bounds, row/origin counts, requested cadence, cap flag, stores). Expanded one-hot columns derive only from saved training vocabularies. BundleMetadata records algorithm/class, internal and actual native parameters, seed/threads, trained_until, dataset context, encoded order, preprocessing version, pinned libraries, coverage/capabilities and file checksums. training.json adds Git/source/lock/registry identity, UTC trained_at, actual duration, MLflow IDs and artifact references. No source CSV/SQL fields change; Customers stay excluded. File manifests may receive new environment fingerprints after dependency changes even when source bytes and ingestion identity are unchanged.
+
+
+## Phase 9 model lifecycle tables
+
+| Table | Keys/fields | Meaning |
+|---|---|---|
+| model_versions | existing UUID PK, dataset/training references, algorithm/cutoff, artifact URI, feature schema hash, MLflow run, status | application role: candidate/active/rejected/archived; one active per scope enforced by partial index |
+| model_registrations | PK/FK model_version_id; bundle_sha256, dataset_fingerprint, mlflow_model_name/version, evidence JSON, approval_required, decision_reason | sealed provenance and actual comparison/approval evidence; no serialized weights |
+| model_slots | scope PK; active_model_version_id FK nullable; generation >= 0 | global-v1 serving authority and compare-and-swap token |
+| model_events | UUID PK; model/previous-model FKs, generation, action, reason, UTC created_at | activation, rejection, missing-evidence, validation-failure and rollback audit |
+
+The native bundle hash seals its file manifest; registration evidence additionally seals training and evaluation manifests. Those manifests bind raw/processed dataset identities, source/code/lock hashes, fitted preprocessing/order and actual metric reports. MLflow registry technical READY is distinct from the application active role. Native model files remain outside both PostgreSQL databases. Source/engineered feature fields are unchanged; Customers remain excluded from predictors.
+
+## Phase 10 persisted forecast contracts
+
+| Table / value | Meaning |
+|---|---|
+| forecast_runs.request_context | Versioned JSON: canonical request/scenarios, visible-input hash, pinned model/generation/schema, dataset identities, source/visible dates, per-store coverage, knowledge assumptions, policy and warnings |
+| forecast_runs.id / source_version / model_version_id / cutoff_date / created_at | UUID, imported source FK, immutable model FK, inclusive information cutoff, UTC generation event |
+| forecast_points run/store/target_date | One daily forecast per requested store and direct horizon, never a retrospective actual |
+| forecast_points.horizon / predicted_sales | Target date minus cutoff (1..48); nonnegative rounded NUMERIC(18,4) in unspecified source Sales units |
+| forecast_points.known_open | Nullable opening plan known at cutoff, distinct from retrospectively observed opening |
+| forecast_points.nonnegative_clamped / closure_adjusted | Whether evaluated nonnegative / explicit-known-closure policies adjusted this point |
+
+Source and engineered fields remain distinct. Daily/weekly/monthly totals derive from rounded point values, not additional model targets or database copies. Historical cutoff and generation timestamp have different meanings. CSV repeats frozen run metadata for portable store-day rows. See API_CONTRACT.md and frozen migration a10f0c03b002; old rows with empty context cannot claim current reproducibility metadata.

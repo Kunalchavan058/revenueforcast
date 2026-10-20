@@ -17,8 +17,8 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Dataset file versioning and reproducible preprocessing (Phase 5).
 - [x] Forecast feature availability and information-cutoff tests (Phase 6).
 - [x] Rolling-origin evaluation, deterministic baselines and reproducible score artifacts (Phase 7).
-- [ ] CPU models and bounded advanced-model training.
-- [ ] Training lifecycle, active-model reuse, API, and persistence.
+- [x] CPU XGBoost/LightGBM/Auto training, bounded tuning and local MLflow (Phase 8).
+- [x] Model registry/active-model reuse and forecast API/persistence (Phases 9-10); durable job execution remains deferred.
 - [ ] Forecast UI, explanations, exports, and run/version history.
 - [ ] Explicit new-label ingestion and optional local retraining schedules.
 - [ ] End-to-end acceptance, resource checks, demo, and portfolio documentation.
@@ -41,7 +41,7 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Lint, formatting, strict types, 2 API tests and 5 component tests passed.
 - [x] Production build and 2 real Edge browser integration tests passed.
 - [x] Readability/docs review; no ML implementation, commits or push.
-- [x] PostgreSQL infrastructure and migrations delivered in Phase 4; DVC delivered in Phase 5; MLflow remains future integration.
+- [x] PostgreSQL infrastructure and migrations delivered in Phase 4; DVC delivered in Phase 5; MLflow delivered in Phases 8-9.
 - [x] Stop at the runnable scaffold.
 
 ## Phase 4 â€” PostgreSQL, data contracts and ingestion
@@ -90,3 +90,57 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Real three-store development study rerun byte-identically; real final holdout left unscored.
 - [x] Model strategy, design decision, standards, guide/status and implementation report updated.
 - [x] Stop before advanced-model training, forecast serving, UI/API or lifecycle services.
+
+## Phase 8 — Bounded CPU model training
+- [x] Shared native XGBoost/LightGBM fit/predict/save/load/capability interfaces.
+- [x] Shared cutoff-safe supervised examples with horizon, fold-fitted preprocessing and persisted one-hot ordering.
+- [x] Same chronological development folds and baselines; eligibility-based Auto without final/hidden-test tuning.
+- [x] Backend-only bounded search settings, explicit dev/full cohort/history scope and deterministic sampling metadata.
+- [x] One training lock, two CPU threads, warning/hard memory thresholds and externally enforced elapsed limits.
+- [x] Local SQLite MLflow parent/trial logging with actual parameters, metrics and artifacts.
+- [x] Native serialization, version/checksum/cutoff/coverage guards and safe failed-job publication behavior.
+- [x] Real Auto/XGBoost/LightGBM dev and LightGBM full commands produce fitted models with measured scores.
+- [x] Real final holdout remains excluded from both training labels and evaluation.
+- [x] All 111 tests pass; typing, lint/format, registry and lock checks pass; data provenance rebuilt for new lock.
+- [x] Guides, design decision, phase report, architecture/data/status and journal updated.
+- [x] Stop before API/UI model use, durable queue, model activation, scheduling or final-holdout release.
+
+
+## Phase 9 - PostgreSQL MLflow and checked model lifecycle
+
+- [x] Separate local MLflow PostgreSQL database/login, private provisioning and CI onboarding.
+- [x] Native artifacts remain files; sealed app versions reference MLflow runs and registered versions.
+- [x] Candidate/active/rejected/archived roles, global generation-checked pointer and transactional audit.
+- [x] Shared-window comparison with original cutoff-fitted validation models, preserved final holdout and explicit missing-evidence approval.
+- [x] Checked rollback, retained artifacts and immutable request pinning.
+- [x] Typed CLI/API list/inspect/activate/rollback contracts and schema/cutoff/load protection.
+- [x] Real PostgreSQL concurrency, migration, failure, artifact, rollback and tracking tests.
+- [x] Latest full suite: 130 passed, 1 visible upstream warning; strict typing, lint, registry, lock and DVC checks pass.
+- [x] Corrected selection: fresh same-budget Auto comparison selected LightGBM, now active; no pending approval; final holdout unscored (see validation fix report).
+- [x] Lifecycle guide, architecture/contracts, decision, report and journal updated.
+- [x] Stop before forecast execution/UI, durable queue, scheduler or final release; no commit/push.
+
+
+## Correction - Preserve validation evidence across final refits
+
+- [x] Retain/seal original cutoff-fitted models and link them to the final recipe/refit.
+- [x] Re-score matched historical predictions; never evaluate final weights backward.
+- [x] Recover existing registrations idempotently and record exact comparison basis/policies.
+- [x] Fresh full-mode Auto study: six genuine trials, shared budget/windows and baselines; LightGBM selected and refitted.
+- [x] Measured winning LightGBM activated automatically; old XGBoost archived and prior duplicate candidate resolved.
+- [x] 130 tests pass, including promotion, final-weight misuse, cutoff, corruption and recovery regressions.
+- [x] Current guide/design/report corrected; locked final holdout remains unscored; no commit/push.
+
+## Phase 10 - Saved-model prediction API
+
+- [x] Typed/OpenAPI health, dataset status, paged/searchable stores, active/version list, forecast create/replay/CSV and feature-registry routes.
+- [x] Verified native model/preprocessing pinned per request; no training, fitting or automatic registration.
+- [x] SQL source/model lineage and physical observation/availability cutoff projection; Customers excluded.
+- [x] Explicit known-future scenarios, unknown defaults, trained-through and source-date guards.
+- [x] Atomic run context/daily point persistence, exact decimal totals and metadata-rich CSV; stable retrieval after switches.
+- [x] 1/7/48-day output, determinism, future mutation/erasure, unknown categories, missing history, rollback, corruption and active-switch tests.
+- [x] All 164 Python cases verified across full/targeted corrected runs; five web component tests, lint/format/types, schema, lock, registry and DVC checks pass.
+- [x] Actual active LightGBM HTTP smoke passed; 167 points saved without training/source/model state changes.
+- [x] API guide, generated schemas, actual response, decision, standards, architecture/data contracts, report and journal updated.
+- [x] Final holdout remains unscored; no raw CSV/model/secret publication and no commit/push.
+- [x] Stop before forecast UI, durable training jobs, scheduling, cross-lineage adoption or final release.

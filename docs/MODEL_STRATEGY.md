@@ -4,7 +4,7 @@
 
 A backtest asks what could have been forecast at a past date, freezes that knowledge, and compares estimates with subsequently observed sales. A baseline is a transparent historical rule, not an advanced learned model. The first results describe three selected Rossmann stores in 2015, not present-day performance or a guarantee for every store.
 
-Phase 7 implements deterministic baselines, rolling-origin evaluation and private result artifacts. It does not implement LightGBM, XGBoost, Auto training, serving, UI charts, model approval or scheduling. The final real-data holdout is reserved and left unscored in this phase. Synthetic tests exercise its complete release path.
+Phase 7 implements deterministic baselines, rolling-origin evaluation and private result artifacts. Phase 8 subsequently implements LightGBM/XGBoost/Auto training and local tracking. Serving, UI charts, model approval and scheduling remain unimplemented. The final real-data holdout is reserved and left unscored in this phase. Synthetic tests exercise its complete release path.
 
 ## Formal target and available information
 
@@ -118,3 +118,7 @@ The protocol embeds each fold's dates, effective config/seed, DVC dataset identi
 Unknown/missing store history yields unsupported predictions, not fake zero revenue. Gaps and late labels reduce coverage; insufficient calendar history fails plan creation. Nonfinite predictions, ambiguous duplicate truth keys, future-trained models, malformed configs and inconsistent comparison masks fail visibly. All-zero slices have meaningful MAE/RMSE and undefined RMSPE. Incomplete final releases require inspection, not automatic retuning or a falsely successful result.
 
 Resources are bounded by at most 32 selected stores, 2..6 development folds, horizons <=48, at most 100,000 result rows, 10,000-row projected input/output batches and sequential fitting. No complete million-row-by-48 Cartesian expansion is created. History/point/segment lists still occupy RAM proportional to the chosen bounds; total peak memory on an 8 GB machine has not been measured. Do not infer all-store or future advanced-model accuracy from the three-store starter study. Promotion effects remain predictive associations, not causal uplift.
+
+## Phase 8 learned candidates
+
+CPU tree trials now share the development folds, scoring/adjustment policies and baseline comparisons. Bounded search, fixed preprocessing/one-hot vocabularies, explicit same-family versus Auto eligibility, genuine metrics and pre-holdout refitting are implemented; see TRAINING.md and decision 0009. Auto's eligible pool is tree trials, not silent baseline fallback. Comparison output includes exact per-horizon scores. The training CLI emits its own audited training/model manifest and does not emit a Phase 7 baseline selection.json or release final labels. Timings are recorded without making hardware-dependent selection ties. The final real holdout remains unscored in Phase 8.

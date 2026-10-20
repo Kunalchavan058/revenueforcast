@@ -1,6 +1,6 @@
 # RetailForecast AI
 
-A local-first retail forecasting application in development. **Phase 7 adds deterministic forecasting baselines and rolling-origin evaluation to the cutoff-safe feature and data foundation.** The web app still shows API connection health only. Advanced model training, interactive forecast serving, charts, scheduling and MLflow integration are not implemented. Baseline forecasts exist only as offline evaluation artifacts. Historical 2015 records are not live data.
+A local-first retail forecasting application in development. **Phase 10 adds saved-model forecast APIs, persisted daily results, exact totals and CSV downloads.** The web app still shows API connection health only; forecast charts and scheduling remain future work. Training and evaluation use host-side CLIs. Historical 2015 records are not live data.
 
 ## Required tools
 
@@ -21,6 +21,7 @@ uv sync --locked --python 3.11
 npm.cmd ci
 uv run python scripts/configure_database.py
 docker compose --env-file .env -f infra/compose.yaml up -d --wait
+uv run python scripts/configure_mlflow.py
 uv run alembic upgrade head
 uv run alembic check
 npm.cmd run dev
@@ -33,6 +34,7 @@ uv sync --locked --python 3.11
 npm ci
 uv run python scripts/configure_database.py
 docker compose --env-file .env -f infra/compose.yaml up -d --wait
+uv run python scripts/configure_mlflow.py
 uv run alembic upgrade head
 uv run alembic check
 npm run dev
@@ -75,7 +77,7 @@ Use npm.cmd in PowerShell if execution policy blocks npm.ps1. No virtualenv acti
 | Production frontend build     | npm run build                                                     |
 | Browser tests after build     | npm run test:e2e                                                  |
 
-Normal pytest includes real PostgreSQL integration tests and fails if the database is unavailable; it never silently skips or substitutes SQLite. Test schemas are generated and isolated from imported data; migration downgrade/upgrade is tested only there. Source-only tests can explicitly be selected with uv run pytest tests/test_validation.py.
+Normal pytest includes real business/MLflow PostgreSQL integration tests and fails if the database is unavailable; it never silently skips or substitutes SQLite. Test schemas are generated and isolated from imported data; migration downgrade/upgrade is tested only there. Source-only tests can explicitly be selected with uv run pytest tests/test_validation.py.
 
 Browser tests require free ports 3000/8000 and a browser. Install Chromium using npm exec --workspace apps/web -- playwright install chromium. Or use installed Edge: set $env:PLAYWRIGHT_CHANNEL='msedge' in PowerShell, or prefix the bash command with PLAYWRIGHT_CHANNEL=msedge. They start/stop their own test servers. The existing dev servers must be stopped before running browser integration tests.
 
@@ -84,7 +86,7 @@ Browser tests require free ports 3000/8000 and a browser. Install Chromium using
 API health returns {status: ok, service: retailforecast-api, api_version: v1}; it is liveness only, not database/model readiness. Browser requests use same-origin /api/v1 and a Next.js rewrite to API_BASE_URL, default http://127.0.0.1:8000. Root dev/web/build commands load optional .env; restart/rebuild after proxy changes. The typed client shows actual loading/connected/offline states and validates response JSON.
 
 - apps/web/: Next.js App Router, React/strict TypeScript, Tailwind and a local shadcn/ui primitive.
-- services/api/: thin health-only service entry point, not a second Python package root.
+- services/api/: thin health, model-lifecycle and forecast endpoints, not a second Python package root.
 - src/retailforecast/: the sole installable Python package; implemented data/storage modules and reserved features/training/evaluation/forecasting/lifecycle boundaries.
 - infra/compose.yaml and infra/migrations/: PostgreSQL and frozen Alembic revisions. No model bytes in business tables.
 - tests/: synthetic source fixtures, API/validation tests and real PostgreSQL ingestion/migration tests. Web tests live under apps/web/.
@@ -106,13 +108,13 @@ Other checkouts should install Node 22.13+ themselves; .tools/ is not committed.
 
 ## Design and status
 
-Read [AGENTS.md](AGENTS.md), [product spec](docs/PRODUCT_SPEC.md), [architecture](docs/ARCHITECTURE.md), [coding standards](docs/CODING_STANDARDS.md), [roadmap](docs/ROADMAP.md), and [journal](docs/IMPLEMENTATION_LOG.md). Design documents include future behavior beyond this phase. No ML evaluation or accuracy claims exist.
+Read [AGENTS.md](AGENTS.md), [product spec](docs/PRODUCT_SPEC.md), [architecture](docs/ARCHITECTURE.md), [coding standards](docs/CODING_STANDARDS.md), [roadmap](docs/ROADMAP.md), and [journal](docs/IMPLEMENTATION_LOG.md). Design documents include future behavior beyond this phase; measured development results are documented separately from the unscored final holdout.
 
 The public repository is [Kunalchavan058/revenueforcast](https://github.com/Kunalchavan058/revenueforcast). Next.js regenerates next-env.d.ts during dev/build/typegen; it stays local and ignored while remaining included in tsconfig.json.
 
 ## Reproducible datasets with DVC
 
-DVC tracks artifact files/content hashes; PostgreSQL keeps transactional business records; Git tracks code/pointers; MLflow remains future integration. The local DVC remote is outside this repository and its location stays in ignored config.local.
+DVC tracks artifact files/content hashes; PostgreSQL keeps transactional business records; Git tracks code/pointers; MLflow tracks experiments and model references in its own local PostgreSQL database. The local DVC remote is outside this repository and its location stays in ignored config.local.
 
 ```text
 uv sync --locked
@@ -144,3 +146,42 @@ uv run --locked python -m retailforecast.evaluation.backtest --stage development
 ```
 
 The default is a bounded three-store, three-origin, 48-horizon study. Results are private JSON/Parquet under `artifacts/evaluation`; choose a new output directory if a run already exists. The real final holdout remains reserved and unscored. Feature/evaluation-only synthetic tests require neither Kaggle nor PostgreSQL; the full existing suite includes PostgreSQL integration tests.
+
+## Phase 8 — Fit CPU models
+
+See [TRAINING.md](docs/TRAINING.md) for budgets, full-mode scope, native model/preprocessing bundles, MLflow inspection and failure policies.
+
+```text
+uv run --locked dvc repro manifest@synthetic manifest@rossmann
+uv run --locked python -m retailforecast.training.train --algorithm lightgbm --mode dev
+uv run --locked python -m retailforecast.training.train --algorithm xgboost --mode dev
+uv run --locked python -m retailforecast.training.train --algorithm auto --mode dev
+uv run --locked python -m retailforecast.training.train --algorithm lightgbm --mode full
+```
+
+Users select algorithm and dev/full mode; internal tuning parameters live in `configs/training.yaml`. The current cohort is stores 1,2,3, not all Rossmann stores. The final real holdout remains unscored. Saved candidates and experiment files stay ignored under `artifacts/`; training alone does not activate them; Phase 9 supplies explicit checked lifecycle commands. Phase 10 now serves saved active models through the forecast API.
+
+## Phase 9 - Track and approve model versions
+
+After starting PostgreSQL, provision MLflow's separate database/login before running training:
+
+```text
+uv run --locked python scripts/configure_mlflow.py
+uv run --locked alembic upgrade head
+uv run --locked python -m retailforecast.lifecycle.manage list
+uv run --locked python -m retailforecast.lifecycle.manage slot
+```
+
+[MODEL_LIFECYCLE.md](docs/MODEL_LIFECYCLE.md) gives exact register/inspect/activate/rollback commands and API contracts. Model binaries/preprocessing remain in ignored local files, never PostgreSQL. Existing SQLite experiments are retained; new tracking defaults to PostgreSQL. A generation token prevents concurrent overwrites. Later candidates are compared using sealed original chronological validation models, then the winning final refit can activate automatically. Manual approval is reserved for genuinely missing evidence; the real final holdout stays locked. Current models cover stores 1,2,3 only. [PHASE_09_REPORT.md](docs/PHASE_09_REPORT.md) records actual verification and remaining limits.
+
+The corrected workflow is verified in [VALIDATION_FIX_REPORT.md](docs/VALIDATION_FIX_REPORT.md): historical fold models supply validation evidence even after the serving model is refitted. To run a fresh controlled comparison and refit, use `uv run --locked python -m retailforecast.training.train --algorithm auto --mode full`.
+
+## Phase 10 - Predict without retraining
+
+[API_CONTRACT.md](docs/API_CONTRACT.md) documents every endpoint, request/result/failure example, historical cutoffs, scenario availability, decimal precision, CSV and limits. Start `npm run api`, then open http://127.0.0.1:8000/docs. Apply `uv run --locked alembic upgrade head` first. Inspect `/api/v1/datasets/status`, `/api/v1/stores` and `/api/v1/models/active`, then POST `/api/v1/forecasts`:
+
+```json
+{ "store_ids": [1, 2, 3], "cutoff_date": "2015-07-31", "horizon_days": 48 }
+```
+
+The existing active model covers stores 1,2,3. Every request reuses verified weights/preprocessing and only history available by its cutoff; it never trains. GET `/api/v1/forecasts/{forecast_id}` and its `/download.csv` return saved values. Daily/week/month totals sum rounded store-day values. Future plans are unknown unless explicitly supported and supplied. The browser still has no forecasting page. See [PHASE_10_REPORT.md](docs/PHASE_10_REPORT.md) for actual checks and scope.

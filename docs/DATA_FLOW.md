@@ -85,3 +85,13 @@ D3 Features and D4 direct feature rows now use one FeatureBuilder. Sales require
 ## Phase 7 observed-outcome scoring
 
 After dataset verification, reserve non-overlapping development/final dates. For each development origin, build physically available TrainingHistory, fit each adapter and generate every store/horizon forecast from shared features. Only afterward load daily_sales outcomes, join eligible actuals/observed Open, apply a common support mask and compute metrics/segments. Selection reads development summaries only. Save deterministic JSON/Parquet and a frozen selection record. A separate final command validates the exact protocol, claims its local release receipt and scores the frozen winner once; identical repeats verify cached files. The real final holdout remains untouched in Phase 7; synthetic integration tests exercise this release path.
+
+## Phase 8 fold-local supervised training
+
+The runner passes available TrainingHistory into a tree factory. The factory replaces the builder's label history with that filtered view, chooses calendar origins under explicit row limits, attaches only targets available by the fold end, fits preprocessing on those rows and one-hot encodes its saved categorical vocabulary. Every internal parameter trial uses identical fold data. Predicted development rows join actuals only afterward; scores include baselines, buckets and exact horizons. Auto selects eligible tree trials without reading final scores. Refit through the final origin, save/check native model plus JSON preprocessing, then let the successful resource supervisor publish it. MLflow records real trials/parameters/metrics and references local artifacts; no model activation occurs.
+
+## Phase 10 online prediction
+
+The existing direct-prediction flow now executes through FastAPI. Resolve one active version/generation, verify its saved weights/preprocessor/schema and select that model's immutable imported source. Load only requested stores' Sales observed and available by cutoff, then compute every direct horizon from the same frozen history. Current model policy leaves target plans unknown; validated explicit scenarios can supply known fields. The feature-input fingerprint binds this visible snapshot to its model.
+
+After all outputs pass validation, atomically save run context and ordered daily points. Aggregate/export from those stored rounded values. Retrieval does not resolve the current active pointer again and remains stable after activation/rollback. No scoring outcomes, training, MLflow writes or final-holdout release occur in a forecast request. API_CONTRACT.md documents exact fields/errors and the distinct historical source date, requested information cutoff and UTC generation time.

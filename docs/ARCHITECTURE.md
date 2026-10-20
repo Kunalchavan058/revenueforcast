@@ -3,7 +3,7 @@
 ## In plain English
 The browser asks a local API for forecasts. A saved model is reused instead of relearning on every request. A separate worker trains candidates while the approved model keeps serving. Historical data, predictions, and learned model files have different storage homes. No GPU or paid service is required.
 
-Status: target architecture with phased implementation. API/web health, PostgreSQL ingestion, DVC normalization, cutoff-safe features and Phase 7 baseline evaluation are implemented. Forecast serving, advanced estimator training, MLflow and scheduling below remain planned. See [data flow](DATA_FLOW.md), [lifecycle](MODEL_LIFECYCLE.md), and [diagram standards](DIAGRAM_STYLE_GUIDE.md).
+Status: target architecture with phased implementation. API/web health, PostgreSQL ingestion, DVC normalization, cutoff-safe features, baseline evaluation and Phase 8 CPU model training/local MLflow tracking are implemented. Phase 9 adds PostgreSQL MLflow, verified model registration, transactional activation/rollback, inspection endpoints and a pinning domain interface. Phase 10 implements pinned saved-model prediction, transactional forecast persistence, discovery and CSV APIs; scheduling and forecast browser flows remain planned. See [data flow](DATA_FLOW.md), [lifecycle](MODEL_LIFECYCLE.md), and [diagram standards](DIAGRAM_STYLE_GUIDE.md).
 
 ## Vocabulary
 | Term | Meaning |
@@ -170,3 +170,22 @@ The shared features package implements direct 1..48-day rows for future training
 ## Phase 7 offline evaluation boundary
 
 ForecasterFactory/FittedForecaster protocols separate algorithms from the rolling-origin runner. Fit receives only cutoff/availability-filtered immutable history; prediction receives the shared FeatureRow. Scoring-only actual Sales/observed Open join afterward. Three deterministic baselines refit at each origin; all horizons reuse that frozen state. JSON/Parquet store real metrics, common-support coverage and source/fold provenance in ignored local artifacts. The final calendar is reserved before development selection and a guarded final release evaluates only a frozen winner. The real final period remains unscored in this phase. MODEL_STRATEGY.md and decision 0008 define scoring, failure and resource policies. No worker, model registry, new API/UI, database change or advanced training is added.
+
+## Phase 8 CPU training boundary
+
+A one-job coordinator supervises a native-fitting subprocess with CPU, sampled RSS and elapsed limits. Shared typed adapters fit XGBoost/LightGBM using per-fold preprocessing and one-hot categorical encoding. Bounded deterministic search/Auto use only development folds; baselines remain comparisons. A refit candidate is trained only through the reserved final origin, checksum-verified and renamed to a completed local model directory. The real final target window remains unscored. No database active pointer or serving API is implemented.
+
+Local MLflow client logging uses SQLite metadata and filesystem artifacts under ignored artifacts/mlflow; no extra service is needed for this single-writer CLI. Decision 0009 refines the earlier PostgreSQL MLflow backend plan for this stage. Native models remain files, while metadata holds run/artifact references. TRAINING.md defines run/config/manifest contracts and the limited dev/full cohort scope.
+
+
+## Phase 9 implemented lifecycle boundary
+
+Decision 0010 supersedes historical Phase 4/8 notes above about deferred PostgreSQL tracking and SQLite production logging. One Docker PostgreSQL instance now holds distinct business/MLflow databases and credentials. New tracking uses PostgreSQL; existing SQLite experiments are preserved. Application registrations seal immutable bundles and reference MLflow run/model/version IDs. The global-v1 slot, generation and decision events control atomic replacement/rollback; ordinary reads/pinned models remain independent of a changing pointer.
+
+Corrected promotion re-scores the original cutoff-fitted validation models, sealed to each registered recipe/final refit. Final models may include development dates after selection; they never generate earlier validation predictions. This uses the available labeled data without requiring manual approval. Exact serving-weight comparisons remain a separate post-fit evaluation path; all final holdout targets remain excluded. See decision 0011 and VALIDATION_FIX_REPORT.md. MODEL_LIFECYCLE.md is the implemented contract, including conservative same-context/schema/cohort compatibility. API inspection/activation/rollback exist; durable queue, scheduler, forecast browser flows, alias reconciliation and automatic orphan cleanup remain planned.
+
+## Phase 10 saved-model serving boundary
+
+The HTTP adapter delegates to ForecastService; it never owns training. One bounded request pins the global slot/version/generation, verifies the native/preprocessing bundle and obtains SQL history from its exact imported dataset. Query projection excludes Customers and future Sales before invoking the shared feature builder. Explicit known scenario revisions replace whole target plans. Evaluation and prediction share the existing output adjustment function.
+
+Predict emits all store/horizon values before a single forecast_runs/forecast_points transaction. The run stores versioned request/provenance JSON and points retain exact rounded values and adjustment flags. Read/export reconstruct from persisted records without needing native files or MLflow availability. Daily/week/month totals sum stored store-day values. API_CONTRACT.md and decision 0012 define bounds, historical-date disclosures, schema errors, read-after-switch behavior and decimal-string contracts. The existing prediction diagrams describe this flow; browser flows, live ingestion, worker/scheduler and distributed serving are still deferred.
