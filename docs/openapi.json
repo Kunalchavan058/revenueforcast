@@ -1,0 +1,1862 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RetailForecast AI",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "description": "Return process liveness; no database, dataset, or model is required.",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/status": {
+      "get": {
+        "tags": [
+          "forecasts",
+          "data"
+        ],
+        "summary": "Dataset Status",
+        "description": "Distinguish latest imported labels from active model data and wall-clock time.",
+        "operationId": "dataset_status_api_v1_datasets_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetStatus"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stores": {
+      "get": {
+        "tags": [
+          "forecasts",
+          "data"
+        ],
+        "summary": "Stores",
+        "description": "Return searchable source store IDs with pagination and active-model support.",
+        "operationId": "stores_api_v1_stores_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 50,
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "dataset_version_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dataset Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorePage"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forecasts": {
+      "post": {
+        "tags": [
+          "forecasts"
+        ],
+        "summary": "Create Forecast",
+        "description": "Reuse a saved model and atomically persist direct 1..48-day predictions.",
+        "operationId": "create_forecast_api_v1_forecasts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request or unavailable store/history/cutoff",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HTTPValidationError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forecasts/{forecast_id}": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "summary": "Get Forecast",
+        "description": "Read frozen values and metadata without needing the original model files.",
+        "operationId": "get_forecast_api_v1_forecasts__forecast_id__get",
+        "parameters": [
+          {
+            "name": "forecast_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Forecast Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forecasts/{forecast_id}/download.csv": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "summary": "Download Forecast",
+        "description": "Export the saved store-day values with model and historical source metadata.",
+        "operationId": "download_forecast_api_v1_forecasts__forecast_id__download_csv_get",
+        "parameters": [
+          {
+            "name": "forecast_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Forecast Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/model/feature-registry": {
+      "get": {
+        "tags": [
+          "forecasts",
+          "features"
+        ],
+        "summary": "Feature Registry",
+        "description": "Expose generated serving and exclusion policies without infrastructure dependencies.",
+        "operationId": "feature_registry_api_v1_model_feature_registry_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureRegistryResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "List Models",
+        "description": "List versions, lineage and actual decision evidence; never infer readiness from health.",
+        "operationId": "list_models_api_v1_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VersionView"
+                  },
+                  "type": "array",
+                  "title": "Response List Models Api V1 Models Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/versions": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "List Models",
+        "description": "List versions, lineage and actual decision evidence; never infer readiness from health.",
+        "operationId": "list_models_api_v1_models_versions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VersionView"
+                  },
+                  "type": "array",
+                  "title": "Response List Models Api V1 Models Versions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/active": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Active Slot",
+        "description": "Expose the authoritative pointer and its current compare-and-swap generation.",
+        "operationId": "active_slot_api_v1_models_active_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlotView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/{version_id}": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Inspect Model",
+        "description": "Inspect historical metrics and last comparison without loading untrusted model bytes.",
+        "operationId": "inspect_model_api_v1_models__version_id__get",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/{version_id}/activate": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Activate Model",
+        "description": "Activate only after artifact and shared-window checks; pending evidence retains incumbent.",
+        "operationId": "activate_model_api_v1_models__version_id__activate_post",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlotView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/{version_id}/rollback": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Rollback Model",
+        "description": "Restore a retained compatible archived version, requiring a reason and generation.",
+        "operationId": "rollback_model_api_v1_models__version_id__rollback_post",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlotView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivationRequest": {
+        "properties": {
+          "expected_generation": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Generation"
+          },
+          "approval_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_generation"
+        ],
+        "title": "ActivationRequest",
+        "description": "Require a generation token and an explicit reason to override missing metric evidence."
+      },
+      "DatasetStatus": {
+        "properties": {
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DatasetSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "active_model_dataset_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Model Dataset Version Id"
+          },
+          "source_kind": {
+            "type": "string",
+            "title": "Source Kind",
+            "default": "imported_historical_snapshot"
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "default": "Historical imports only; ingestion timestamps do not make source sales current."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "latest",
+          "active_model_dataset_version_id"
+        ],
+        "title": "DatasetStatus",
+        "description": "Latest import and the active model's pinned dataset may differ."
+      },
+      "DatasetSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "checksum": {
+            "type": "string",
+            "title": "Checksum"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "ingested_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ingested At"
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows"
+          },
+          "available_through": {
+            "type": "string",
+            "format": "date",
+            "title": "Available Through"
+          },
+          "availability_policy": {
+            "type": "string",
+            "title": "Availability Policy"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "checksum",
+          "version",
+          "ingested_at",
+          "rows",
+          "available_through",
+          "availability_policy"
+        ],
+        "title": "DatasetSummary",
+        "description": "An imported historical source; ingestion time is distinct from label freshness."
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "description": "Stable domain error codes and actionable messages without private filesystem paths."
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "description": "Envelope used by documented domain errors; input errors retain FastAPI's 422 shape."
+      },
+      "FeatureDefinition": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "source_csv": {
+            "type": "string",
+            "title": "Source Csv"
+          },
+          "data_type": {
+            "type": "string",
+            "enum": [
+              "numeric",
+              "categorical"
+            ],
+            "title": "Data Type"
+          },
+          "derivation": {
+            "type": "string",
+            "title": "Derivation"
+          },
+          "missing_policy": {
+            "type": "string",
+            "title": "Missing Policy"
+          },
+          "temporal_availability": {
+            "type": "string",
+            "enum": [
+              "static",
+              "historical_at_cutoff",
+              "known_future",
+              "unknown_future"
+            ],
+            "title": "Temporal Availability"
+          },
+          "lineage": {
+            "type": "string",
+            "title": "Lineage"
+          },
+          "leakage_risk": {
+            "type": "string",
+            "title": "Leakage Risk"
+          },
+          "serving_requirement": {
+            "type": "string",
+            "title": "Serving Requirement"
+          },
+          "predictor": {
+            "type": "boolean",
+            "title": "Predictor",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "explanation",
+          "source_csv",
+          "data_type",
+          "derivation",
+          "missing_policy",
+          "temporal_availability",
+          "lineage",
+          "leakage_risk",
+          "serving_requirement"
+        ],
+        "title": "FeatureDefinition",
+        "description": "Machine-readable feature contract; predictor=False documents prohibited sources."
+      },
+      "FeatureRegistryResponse": {
+        "properties": {
+          "fingerprint": {
+            "type": "string",
+            "title": "Fingerprint"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/FeatureDefinition"
+            },
+            "type": "array",
+            "title": "Features"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "fingerprint",
+          "features"
+        ],
+        "title": "FeatureRegistryResponse",
+        "description": "The real registry includes prohibited fields explicitly marked predictor=false."
+      },
+      "ForecastData": {
+        "properties": {
+          "dataset_version_id": {
+            "type": "string",
+            "title": "Dataset Version Id"
+          },
+          "dataset_fingerprint": {
+            "type": "string",
+            "title": "Dataset Fingerprint"
+          },
+          "source_checksum": {
+            "type": "string",
+            "title": "Source Checksum"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "source_available_through": {
+            "type": "string",
+            "format": "date",
+            "title": "Source Available Through"
+          },
+          "actual_data_cutoff": {
+            "type": "string",
+            "format": "date",
+            "title": "Actual Data Cutoff"
+          },
+          "source_kind": {
+            "type": "string",
+            "const": "imported_historical_snapshot",
+            "title": "Source Kind",
+            "default": "imported_historical_snapshot"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryCoverage"
+            },
+            "type": "array",
+            "title": "History"
+          },
+          "assumptions": {
+            "$ref": "#/components/schemas/HistoricalAssumptions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dataset_version_id",
+          "dataset_fingerprint",
+          "source_checksum",
+          "source",
+          "source_available_through",
+          "actual_data_cutoff",
+          "history",
+          "assumptions"
+        ],
+        "title": "ForecastData",
+        "description": "Expose historical source dates separately from the time a forecast was generated."
+      },
+      "ForecastDay": {
+        "properties": {
+          "store_id": {
+            "type": "integer",
+            "title": "Store Id"
+          },
+          "target_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Target Date"
+          },
+          "horizon": {
+            "type": "integer",
+            "title": "Horizon"
+          },
+          "predicted_sales": {
+            "type": "string",
+            "title": "Predicted Sales"
+          },
+          "known_open": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Known Open"
+          },
+          "nonnegative_clamped": {
+            "type": "boolean",
+            "title": "Nonnegative Clamped"
+          },
+          "closure_adjusted": {
+            "type": "boolean",
+            "title": "Closure Adjusted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "store_id",
+          "target_date",
+          "horizon",
+          "predicted_sales",
+          "known_open",
+          "nonnegative_clamped",
+          "closure_adjusted"
+        ],
+        "title": "ForecastDay",
+        "description": "One rounded store-day estimate; flags disclose the evaluated output adjustments."
+      },
+      "ForecastModel": {
+        "properties": {
+          "version_id": {
+            "type": "string",
+            "title": "Version Id"
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "xgboost",
+              "lightgbm"
+            ],
+            "title": "Algorithm"
+          },
+          "generation": {
+            "type": "integer",
+            "title": "Generation"
+          },
+          "trained_until": {
+            "type": "string",
+            "format": "date",
+            "title": "Trained Until"
+          },
+          "feature_schema_fingerprint": {
+            "type": "string",
+            "title": "Feature Schema Fingerprint"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version_id",
+          "algorithm",
+          "generation",
+          "trained_until",
+          "feature_schema_fingerprint"
+        ],
+        "title": "ForecastModel",
+        "description": "Pin version/generation and fitted schema so switches cannot mix model identities."
+      },
+      "ForecastRequest": {
+        "properties": {
+          "store_ids": {
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Store Ids"
+          },
+          "cutoff_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Cutoff Date"
+          },
+          "horizon_days": {
+            "type": "integer",
+            "maximum": 48.0,
+            "minimum": 1.0,
+            "title": "Horizon Days"
+          },
+          "scenarios": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioPlan"
+            },
+            "type": "array",
+            "maxItems": 1536,
+            "title": "Scenarios",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "store_ids",
+          "cutoff_date",
+          "horizon_days"
+        ],
+        "title": "ForecastRequest",
+        "description": "Request direct daily forecasts; no training, hyperparameter or actual-target inputs."
+      },
+      "ForecastResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "request": {
+            "$ref": "#/components/schemas/ForecastRequest"
+          },
+          "input_fingerprint": {
+            "type": "string",
+            "title": "Input Fingerprint"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ForecastModel"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ForecastData"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/OutputPolicy"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "forecast_id": {
+            "type": "string",
+            "title": "Forecast Id"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastDay"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ForecastTotals"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request",
+          "input_fingerprint",
+          "model",
+          "data",
+          "policy",
+          "warnings",
+          "forecast_id",
+          "generated_at",
+          "points",
+          "totals"
+        ],
+        "title": "ForecastResponse",
+        "description": "A saved immutable forecast, never retrospective target values or invented errors."
+      },
+      "ForecastTotals": {
+        "properties": {
+          "predicted_sales": {
+            "type": "string",
+            "title": "Predicted Sales"
+          },
+          "by_store": {
+            "items": {
+              "$ref": "#/components/schemas/StoreTotal"
+            },
+            "type": "array",
+            "title": "By Store"
+          },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/PeriodTotal"
+            },
+            "type": "array",
+            "title": "Daily"
+          },
+          "weekly": {
+            "items": {
+              "$ref": "#/components/schemas/PeriodTotal"
+            },
+            "type": "array",
+            "title": "Weekly"
+          },
+          "monthly": {
+            "items": {
+              "$ref": "#/components/schemas/PeriodTotal"
+            },
+            "type": "array",
+            "title": "Monthly"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "predicted_sales",
+          "by_store",
+          "daily",
+          "weekly",
+          "monthly"
+        ],
+        "title": "ForecastTotals",
+        "description": "Daily, ISO-week and calendar-month sums over the requested store cohort."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          },
+          "service": {
+            "type": "string",
+            "const": "retailforecast-api",
+            "title": "Service"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "v1",
+            "title": "Api Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "api_version"
+        ],
+        "title": "HealthResponse",
+        "description": "Describe API liveness, not readiness of future storage or ML services."
+      },
+      "HistoricalAssumptions": {
+        "properties": {
+          "explanation": {
+            "type": "string",
+            "minLength": 20,
+            "title": "Explanation"
+          },
+          "metadata_known_as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "Metadata Known As Of"
+          },
+          "calendar_known_as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Known As Of"
+          },
+          "sales_delay_days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 0.0,
+            "title": "Sales Delay Days",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "explanation",
+          "metadata_known_as_of"
+        ],
+        "title": "HistoricalAssumptions",
+        "description": "Explicit archived-data assumptions; source CSVs do not establish knowledge times."
+      },
+      "HistoryCoverage": {
+        "properties": {
+          "store_id": {
+            "type": "integer",
+            "title": "Store Id"
+          },
+          "observed_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Observed From"
+          },
+          "observed_through": {
+            "type": "string",
+            "format": "date",
+            "title": "Observed Through"
+          },
+          "observations": {
+            "type": "integer",
+            "title": "Observations"
+          },
+          "missing_days_in_last_28": {
+            "type": "integer",
+            "title": "Missing Days In Last 28"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "store_id",
+          "observed_from",
+          "observed_through",
+          "observations",
+          "missing_days_in_last_28"
+        ],
+        "title": "HistoryCoverage",
+        "description": "Observed business-date coverage actually visible to this request, per store."
+      },
+      "OutputPolicy": {
+        "properties": {
+          "clip_negative_sales": {
+            "type": "boolean",
+            "const": true,
+            "title": "Clip Negative Sales",
+            "default": true
+          },
+          "closure_policy": {
+            "type": "string",
+            "enum": [
+              "known_plan_zero",
+              "unadjusted"
+            ],
+            "title": "Closure Policy"
+          },
+          "decimal_places": {
+            "type": "integer",
+            "const": 4,
+            "title": "Decimal Places",
+            "default": 4
+          },
+          "totals_method": {
+            "type": "string",
+            "const": "sum_rounded_store_daily_forecasts",
+            "title": "Totals Method",
+            "default": "sum_rounded_store_daily_forecasts"
+          },
+          "sales_unit": {
+            "type": "string",
+            "const": "source Sales units; currency unspecified",
+            "title": "Sales Unit",
+            "default": "source Sales units; currency unspecified"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "closure_policy"
+        ],
+        "title": "OutputPolicy",
+        "description": "The same nonnegative/closure policy used during evaluation, with export precision."
+      },
+      "PeriodTotal": {
+        "properties": {
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "covered_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Covered From"
+          },
+          "covered_through": {
+            "type": "string",
+            "format": "date",
+            "title": "Covered Through"
+          },
+          "days_predicted": {
+            "type": "integer",
+            "title": "Days Predicted"
+          },
+          "predicted_sales": {
+            "type": "string",
+            "title": "Predicted Sales"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "period_start",
+          "period_end",
+          "covered_from",
+          "covered_through",
+          "days_predicted",
+          "predicted_sales"
+        ],
+        "title": "PeriodTotal",
+        "description": "Sum only requested target dates, disclosing partial calendar weeks/months."
+      },
+      "ScenarioPlan": {
+        "properties": {
+          "store_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Store Id"
+          },
+          "target_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Target Date"
+          },
+          "available_as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "Available As Of"
+          },
+          "provenance": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Provenance"
+          },
+          "is_open": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Open"
+          },
+          "promotion": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Promotion"
+          },
+          "state_holiday": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State Holiday"
+          },
+          "school_holiday": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Holiday"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "store_id",
+          "target_date",
+          "available_as_of",
+          "provenance"
+        ],
+        "title": "ScenarioPlan",
+        "description": "A user-asserted full replacement plan known by the request's information cutoff."
+      },
+      "SlotView": {
+        "properties": {
+          "generation": {
+            "type": "integer",
+            "title": "Generation"
+          },
+          "active_model_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Model Version Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "generation",
+          "active_model_version_id"
+        ],
+        "title": "SlotView",
+        "description": "Generation is the required compare-and-swap token for every serving mutation."
+      },
+      "StoreInfo": {
+        "properties": {
+          "store_id": {
+            "type": "integer",
+            "title": "Store Id"
+          },
+          "store_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Store Type"
+          },
+          "assortment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assortment"
+          },
+          "forecast_supported": {
+            "type": "boolean",
+            "title": "Forecast Supported"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "store_id",
+          "store_type",
+          "assortment",
+          "forecast_supported"
+        ],
+        "title": "StoreInfo",
+        "description": "Source store metadata plus explicit active-model cohort support."
+      },
+      "StorePage": {
+        "properties": {
+          "dataset_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataset Version Id"
+          },
+          "source_available_through": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Available Through"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StoreInfo"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dataset_version_id",
+          "source_available_through",
+          "page",
+          "page_size",
+          "total",
+          "items"
+        ],
+        "title": "StorePage",
+        "description": "Stable store-ID ordering with bounded, one-based pagination."
+      },
+      "StoreTotal": {
+        "properties": {
+          "store_id": {
+            "type": "integer",
+            "title": "Store Id"
+          },
+          "predicted_sales": {
+            "type": "string",
+            "title": "Predicted Sales"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "store_id",
+          "predicted_sales"
+        ],
+        "title": "StoreTotal",
+        "description": "Sum rounded daily predictions for one selected store."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VersionView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "algorithm": {
+            "type": "string",
+            "title": "Algorithm"
+          },
+          "trained_until": {
+            "type": "string",
+            "format": "date",
+            "title": "Trained Until"
+          },
+          "trained_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Trained At"
+          },
+          "dataset_version_id": {
+            "type": "string",
+            "title": "Dataset Version Id"
+          },
+          "feature_schema_fingerprint": {
+            "type": "string",
+            "title": "Feature Schema Fingerprint"
+          },
+          "artifact_uri": {
+            "type": "string",
+            "title": "Artifact Uri"
+          },
+          "evaluation_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Reference"
+          },
+          "dataset_fingerprint": {
+            "type": "string",
+            "title": "Dataset Fingerprint"
+          },
+          "mlflow_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mlflow Run Id"
+          },
+          "mlflow_model_name": {
+            "type": "string",
+            "title": "Mlflow Model Name"
+          },
+          "mlflow_model_version": {
+            "type": "string",
+            "title": "Mlflow Model Version"
+          },
+          "approval_required": {
+            "type": "boolean",
+            "title": "Approval Required"
+          },
+          "decision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Reason"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "algorithm",
+          "trained_until",
+          "trained_at",
+          "dataset_version_id",
+          "feature_schema_fingerprint",
+          "artifact_uri",
+          "evaluation_reference",
+          "dataset_fingerprint",
+          "mlflow_run_id",
+          "mlflow_model_name",
+          "mlflow_model_version",
+          "approval_required",
+          "decision_reason",
+          "evidence"
+        ],
+        "title": "VersionView",
+        "description": "Stable inspectable model metadata with no database credentials or binary payloads."
+      }
+    }
+  }
+}

@@ -16,8 +16,8 @@ def test_health_contract() -> None:
     }
 
 
-def test_forecasting_is_not_implemented() -> None:
-    """Avoid implying that an unimplemented forecast endpoint produces results."""
+def test_forecasting_rejects_empty_request() -> None:
+    """Require a valid forecast request before any prediction."""
     with TestClient(create_app()) as client:
         response = client.post("/api/v1/forecasts", json={})
-    assert response.status_code == 404
+    assert response.status_code == 422

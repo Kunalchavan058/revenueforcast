@@ -1,1 +1,1 @@
-"""Deterministic baseline forecasts; advanced model inference remains future work."""
+"""Saved-model prediction services, exact totals and deterministic historical baselines."""

@@ -19,6 +19,7 @@ from retailforecast.evaluation.contracts import (
 )
 from retailforecast.features.builder import FeatureBuilder
 from retailforecast.features.contracts import ForecastKey
+from retailforecast.forecasting.policy import apply_output_policy
 
 
 class PredictionPoint(BaseModel):
@@ -86,14 +87,7 @@ def generate_predictions(
                 known_open = None if flag is None else bool(flag)
                 for name, model in fitted:
                     raw = model.predict(features)
-                    if raw is not None and not math.isfinite(raw):
-                        raise ValueError(f"Method {name} produced a non-finite prediction")
-                    prediction = None if raw is None else max(0.0, raw)
-                    closed = (
-                        prediction is not None
-                        and known_open is False
-                        and config.closure_policy == "known_plan_zero"
-                    )
+                    adjustment = apply_output_policy(raw, known_open, config.closure_policy)
                     result.append(
                         PredictionPoint(
                             fold_id=fold.fold_id,
@@ -104,10 +98,10 @@ def generate_predictions(
                             horizon_days=horizon,
                             trained_until=model.trained_until,
                             raw_prediction=raw,
-                            predicted_sales=0.0 if closed else prediction,
+                            predicted_sales=adjustment.predicted_sales,
                             known_open=known_open,
-                            nonnegative_clamped=raw is not None and raw < 0,
-                            closure_adjusted=closed,
+                            nonnegative_clamped=adjustment.nonnegative_clamped,
+                            closure_adjusted=adjustment.closure_adjusted,
                         )
                     )
     return result

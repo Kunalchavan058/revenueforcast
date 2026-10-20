@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "request": {
+    "store_ids": [
+      1
+    ],
+    "cutoff_date": "2015-07-31",
+    "horizon_days": 1,
+    "scenarios": []
+  },
+  "input_fingerprint": "5c545ad891c9c7c39653c2376e53432d5f3bf08ae304863eaec93570e1113ed1",
+  "model": {
+    "version_id": "c0e51310-98a8-4c34-afd9-ca658fbcd468",
+    "algorithm": "lightgbm",
+    "generation": 2,
+    "trained_until": "2015-06-13",
+    "feature_schema_fingerprint": "2097e86331dca864fa7ee0e5fcd29f52e0d32abde7b04597be72af35b8314ae2"
+  },
+  "data": {
+    "dataset_version_id": "c5b9d841-d9e8-4b20-ab4e-8bfbe522ba4f",
+    "dataset_fingerprint": "a3ed2b3e5d3002ece94d4f2a4faa49187489df59a5889d547e5c50a97833ab53",
+    "source_checksum": "93f159390d2330258aa69d443d8d67ee75768f0febb82789080f4c795f678589",
+    "source": "kaggle:rossmann-store-sales",
+    "source_available_through": "2015-07-31",
+    "actual_data_cutoff": "2015-07-31",
+    "source_kind": "imported_historical_snapshot",
+    "history": [
+      {
+        "store_id": 1,
+        "observed_from": "2013-01-01",
+        "observed_through": "2015-07-31",
+        "observations": 942,
+        "missing_days_in_last_28": 0
+      }
+    ],
+    "assumptions": {
+      "explanation": "Historical simulation: labels available on business date; archived store metadata assumed known from 2013-01-01. No future target plans asserted known. Archives do not prove historical publication dates.",
+      "metadata_known_as_of": "2013-01-01",
+      "calendar_known_as_of": null,
+      "sales_delay_days": 0
+    }
+  },
+  "policy": {
+    "clip_negative_sales": true,
+    "closure_policy": "known_plan_zero",
+    "decimal_places": 4,
+    "totals_method": "sum_rounded_store_daily_forecasts",
+    "sales_unit": "source Sales units; currency unspecified"
+  },
+  "warnings": [
+    "Imported historical snapshot; latest source actual date is 2015-07-31. This is not a live sales feed.",
+    "Future opening, promotion and holiday flags are unknown unless explicitly supplied as known scenario plans."
+  ],
+  "forecast_id": "129eba3e-db6d-4d24-8421-71cf690cf71f",
+  "generated_at": "2026-10-20T09:07:37.178174Z",
+  "points": [
+    {
+      "store_id": 1,
+      "target_date": "2015-08-01",
+      "horizon": 1,
+      "predicted_sales": "4565.9409",
+      "known_open": null,
+      "nonnegative_clamped": false,
+      "closure_adjusted": false
+    }
+  ],
+  "totals": {
+    "predicted_sales": "4565.9409",
+    "by_store": [
+      {
+        "store_id": 1,
+        "predicted_sales": "4565.9409"
+      }
+    ],
+    "daily": [
+      {
+        "period_start": "2015-08-01",
+        "period_end": "2015-08-01",
+        "covered_from": "2015-08-01",
+        "covered_through": "2015-08-01",
+        "days_predicted": 1,
+        "predicted_sales": "4565.9409"
+      }
+    ],
+    "weekly": [
+      {
+        "period_start": "2015-07-27",
+        "period_end": "2015-08-02",
+        "covered_from": "2015-08-01",
+        "covered_through": "2015-08-01",
+        "days_predicted": 1,
+        "predicted_sales": "4565.9409"
+      }
+    ],
+    "monthly": [
+      {
+        "period_start": "2015-08-01",
+        "period_end": "2015-08-31",
+        "covered_from": "2015-08-01",
+        "covered_through": "2015-08-01",
+        "days_predicted": 1,
+        "predicted_sales": "4565.9409"
+      }
+    ]
+  }
+}

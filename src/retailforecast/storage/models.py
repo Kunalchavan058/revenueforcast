@@ -203,7 +203,7 @@ class ModelVersion(Base):
 
 
 class ForecastRun(Base):
-    """Future request-level provenance shared by its points to avoid duplication."""
+    """Saved request/provenance shared by normalized daily predictions."""
 
     __tablename__ = "forecast_runs"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -211,11 +211,14 @@ class ForecastRun(Base):
     model_version_id: Mapped[str] = mapped_column(ForeignKey("model_versions.id"))
     cutoff_date: Mapped[date] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    request_context: Mapped[dict[str, object]] = mapped_column(
+        JSON, default=dict, server_default=text("'{}'")
+    )
     __table_args__ = (UniqueConstraint("id", "source_version"),)
 
 
 class ForecastPoint(Base):
-    """Future values inherit model/cutoff/creation provenance from their parent run."""
+    """Saved daily estimates inherit model/cutoff/creation provenance from their run."""
 
     __tablename__ = "forecast_points"
     run_id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -224,6 +227,13 @@ class ForecastPoint(Base):
     target_date: Mapped[date] = mapped_column(Date, primary_key=True)
     horizon: Mapped[int]
     predicted_sales: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    known_open: Mapped[bool | None] = mapped_column(Boolean)
+    nonnegative_clamped: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false")
+    )
+    closure_adjusted: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false")
+    )
     __table_args__ = (
         ForeignKeyConstraint(
             ["run_id", "source_version"], ["forecast_runs.id", "forecast_runs.source_version"]
