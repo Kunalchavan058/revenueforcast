@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { JobStatus } from "@/components/foundation/job-status";
+import { ErrorBanner } from "@/components/foundation/error-banner";
 import {
   enqueueTraining,
   fetchActiveSlot,
@@ -133,7 +135,7 @@ export function TrainingControl(): React.JSX.Element {
             setAlgorithm(event.target.value as TrainingAlgorithm);
             requestKey.current = null;
           }}
-          className="block rounded border border-border bg-background p-2"
+          className="block min-h-11 rounded-md border border-slate-500 bg-background px-3 py-2"
         >
           <option value="auto">Auto</option>
           <option value="xgboost">XGBoost</option>
@@ -157,18 +159,10 @@ export function TrainingControl(): React.JSX.Element {
         awake laptop. Recurring retraining is manual by default. Unchanged
         labeled data is skipped.
       </p>
-      {job && (
-        <div aria-live="polite" className="space-y-1">
-          <p>
-            Job: {job.state} · {job.stage}
-          </p>
-          <p>{job.message}</p>
-          <p className="text-sm">
-            Attempt {job.attempt_count} of {job.max_attempts}
-          </p>
-        </div>
+      {job && <JobStatus job={job} />}
+      {error && (
+        <ErrorBanner title="Training request unavailable" message={error} />
       )}
-      {error && <p role="alert">{error}</p>}
     </section>
   );
 }

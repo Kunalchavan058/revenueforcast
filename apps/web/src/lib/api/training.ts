@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiRequest as request } from "./transport";
 
 export const activeSlotSchema = z.object({
   active_model_version_id: z.string().uuid().nullable(),
@@ -25,37 +26,6 @@ export const trainingJobSchema = z.object({
 export type ActiveSlot = z.infer<typeof activeSlotSchema>;
 export type TrainingJob = z.infer<typeof trainingJobSchema>;
 export type TrainingAlgorithm = TrainingJob["algorithm"];
-
-const REQUEST_TIMEOUT_MS = 10000;
-
-/** Fetch typed queue state; network/validation failure never implies a ready model. */
-async function request<T>(
-  path: string,
-  schema: z.ZodType<T>,
-  options: RequestInit = {},
-): Promise<T> {
-  const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
-  const signal = options.signal
-    ? AbortSignal.any([options.signal, timeout])
-    : timeout;
-  const response = await fetch(`/api/v1${path}`, {
-    ...options,
-    cache: "no-store",
-    signal,
-  });
-  const payload: unknown = await response.json();
-  if (!response.ok) {
-    const error = z
-      .object({ error: z.object({ message: z.string() }) })
-      .safeParse(payload);
-    throw new Error(
-      error.success
-        ? error.data.error.message
-        : `Request failed (HTTP ${response.status})`,
-    );
-  }
-  return schema.parse(payload);
-}
 
 /** Read the authoritative pointer; liveness alone is insufficient for onboarding. */
 export function fetchActiveSlot(signal?: AbortSignal): Promise<ActiveSlot> {
