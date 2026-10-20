@@ -11,6 +11,7 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
@@ -147,25 +148,46 @@ class ImportJob(Base):
 
 
 class TrainingJob(Base):
-    """Future training metadata only; this phase does not execute jobs."""
+    """Durable requests; attempts and the standalone worker own actual execution."""
 
     __tablename__ = "training_jobs"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    dataset_version_id: Mapped[str] = mapped_column(ForeignKey("dataset_versions.id"))
+    dataset_version_id: Mapped[str | None] = mapped_column(ForeignKey("dataset_versions.id"))
     requested_algorithm: Mapped[str] = mapped_column(String(20))
     state: Mapped[str] = mapped_column(String(20), default="queued")
     initiated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     logs_uri: Mapped[str | None] = mapped_column(Text)
     exit_code: Mapped[int | None]
+    trigger_key: Mapped[str] = mapped_column(String(180), unique=True, default=new_id)
+    request_fingerprint: Mapped[str] = mapped_column(String(64), default="")
+    request_context: Mapped[dict[str, object]] = mapped_column(JSON, default=dict)
+    stage: Mapped[str] = mapped_column(String(40), default="queued")
+    message: Mapped[str] = mapped_column(Text, default="Waiting for the standalone worker")
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    max_attempts: Mapped[int] = mapped_column(Integer, default=2)
+    retry_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    scheduled_for: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    result_model_version_id: Mapped[str | None] = mapped_column(String(36))
     __table_args__ = (
         CheckConstraint(
             "requested_algorithm IN ('lightgbm','xgboost','auto')",
             name="algorithm",
         ),
         CheckConstraint(
-            "state IN ('queued','running','succeeded','failed','interrupted','cancelled')",
+            "state IN ('queued','running','succeeded','failed','skipped','cancelled')",
             name="state",
+        ),
+        CheckConstraint(
+            "attempt_count >= 0 AND max_attempts BETWEEN 1 AND 3", name="attempt_bounds"
+        ),
+        Index(
+            "uq_running_training_job",
+            "state",
+            unique=True,
+            postgresql_where=text("state = 'running'"),
         ),
     )
 
@@ -192,6 +214,12 @@ class ModelVersion(Base):
             name="status",
         ),
         CheckConstraint("algorithm IN ('lightgbm','xgboost')", name="algorithm"),
+        Index(
+            "uq_model_training_job",
+            "training_job_id",
+            unique=True,
+            postgresql_where=text("training_job_id IS NOT NULL"),
+        ),
         Index(
             "uq_active_model_scope",
             "scope",
@@ -248,7 +276,7 @@ class ForecastPoint(Base):
 
 
 class RetrainingSchedule(Base):
-    """Future schedule configuration; no scheduler runs in this ingestion phase."""
+    """Optional wall-calendar schedule; only the standalone worker advances it."""
 
     __tablename__ = "retraining_schedules"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -257,6 +285,10 @@ class RetrainingSchedule(Base):
     timezone: Mapped[str] = mapped_column(String(50), default="UTC")
     next_run: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    anchor_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+    algorithm: Mapped[str] = mapped_column(String(20), default="auto")
+    last_check_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     __table_args__ = (
         CheckConstraint(
             "cadence IN ('manual','weekly','monthly','quarterly')",
@@ -300,3 +332,39 @@ class ModelEvent(Base):
     action: Mapped[str] = mapped_column(String(30))
     reason: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class DatasetLineage(Base):
+    """A validated append-only child copies every parent's historical record unchanged."""
+
+    __tablename__ = "dataset_lineage"
+    dataset_version_id: Mapped[str] = mapped_column(
+        ForeignKey("dataset_versions.id"), primary_key=True
+    )
+    parent_version_id: Mapped[str] = mapped_column(ForeignKey("dataset_versions.id"))
+    additional_checksum: Mapped[str] = mapped_column(String(64))
+    provenance: Mapped[str] = mapped_column(Text)
+    synthetic: Mapped[bool] = mapped_column(Boolean, default=False)
+    __table_args__ = (
+        CheckConstraint("dataset_version_id <> parent_version_id", name="distinct_parent"),
+    )
+
+
+class TrainingAttempt(Base):
+    """One fenced process attempt; retries retain failure and owned-child identity."""
+
+    __tablename__ = "training_attempts"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    job_id: Mapped[str] = mapped_column(ForeignKey("training_jobs.id"))
+    number: Mapped[int]
+    owner_token: Mapped[str] = mapped_column(String(36))
+    state: Mapped[str] = mapped_column(String(20), default="running")
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    heartbeat_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    process_id: Mapped[int | None]
+    process_created_at: Mapped[float | None] = mapped_column(Float)
+    output_relative: Mapped[str] = mapped_column(Text)
+    exit_code: Mapped[int | None]
+    summary: Mapped[str] = mapped_column(Text, default="Claimed by standalone worker")
+    __table_args__ = (UniqueConstraint("job_id", "number"),)

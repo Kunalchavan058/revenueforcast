@@ -61,6 +61,8 @@ class TreeModel:
         """Return a finite raw estimate; the shared runner applies closure/nonnegative policy."""
         if features.key.store_id not in self.metadata.training_span.store_ids:
             raise ValueError("Model does not advertise coverage for this unseen store")
+        if features.context != self.metadata.context:
+            raise ValueError("Feature dataset/availability context differs from the saved model")
         matrix = encode_row(features, self.preprocessing).reshape(1, -1)
         if isinstance(self.booster, xgb.Booster):
             prediction = self.booster.predict(xgb.DMatrix(matrix, nthread=self.metadata.n_jobs))

@@ -7,6 +7,7 @@ from datetime import date, datetime
 from pydantic import Field
 from sqlalchemy import String, cast, func, select
 
+from retailforecast.data.lineage import is_descendant, latest_descendant
 from retailforecast.forecasting.contracts import ApiContract
 from retailforecast.forecasting.errors import ForecastError
 from retailforecast.lifecycle.registry import ModelRegistry
@@ -118,6 +119,8 @@ class CatalogService:
                     .limit(1)
                 )
             )
+            if active and source is not None and dataset_version_id is None:
+                source = latest_descendant(session, active.dataset_version_id)
             if source is None and dataset_version_id:
                 raise ForecastError(
                     "dataset_not_found", "No imported dataset has this version ID", 404
@@ -131,7 +134,7 @@ class CatalogService:
                     total=0,
                     items=(),
                 )
-            if active and active.dataset_version_id == source.id:
+            if active and is_descendant(session, source.id, active.dataset_version_id):
                 try:
                     model, _ = self.registry.load(active.id)
                     supported = set(model.metadata.training_span.store_ids)

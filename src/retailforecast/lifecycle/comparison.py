@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from datetime import date
 from pathlib import Path
 from typing import Literal
 
@@ -10,10 +11,16 @@ from pydantic import BaseModel, ConfigDict
 
 from retailforecast.data.validation import file_checksum
 from retailforecast.evaluation.artifacts import EvaluationProtocol, build_protocol, write_results
-from retailforecast.evaluation.contracts import Fold, ForecasterFactory, TrainingHistory
+from retailforecast.evaluation.contracts import (
+    FittedForecaster,
+    Fold,
+    ForecasterFactory,
+    TrainingHistory,
+)
 from retailforecast.evaluation.metrics import Segment, summarize
 from retailforecast.evaluation.runner import generate_predictions, score_predictions
 from retailforecast.evaluation.snapshot import load_outcomes
+from retailforecast.features.builder import FeatureRow
 from retailforecast.features.snapshot import load_feature_builder
 from retailforecast.lifecycle.validation import RetainedFoldFactory, ValidationModels
 from retailforecast.training.adapters import TreeModel
@@ -49,6 +56,41 @@ class FixedModel:
         if self.model.trained_until > history.cutoff_date:
             raise ValueError("Saved weights were trained after comparison cutoff")
         return self.model
+
+
+@dataclass(frozen=True)
+class ContextBoundModel:
+    """Use identical feature values with each model's saved context after SQL lineage proof."""
+
+    model: TreeModel
+
+    @property
+    def trained_until(self) -> date:
+        """Keep the original fit guard; context rebinding never changes chronology or weights."""
+        return self.model.trained_until
+
+    def predict(self, features: FeatureRow) -> float:
+        """Rebind identity only for certified unchanged-prefix append-only comparisons."""
+        return self.model.predict(replace(features, context=self.model.metadata.context))
+
+
+@dataclass(frozen=True)
+class AppendOnlyFactory:
+    """Wrap a retained/fixed factory only after the registry verifies compatible SQL lineage."""
+
+    factory: ForecasterFactory
+
+    @property
+    def name(self) -> str:
+        """Preserve the candidate/incumbent scoring identity."""
+        return self.factory.name
+
+    def fit(self, history: TrainingHistory) -> FittedForecaster:
+        """Return each historical tree without refitting or exposing future outcomes."""
+        model = self.factory.fit(history)
+        if not isinstance(model, TreeModel):
+            raise ValueError("Append-only comparisons require verified native tree models")
+        return ContextBoundModel(model)
 
 
 def shared_folds(
@@ -97,6 +139,7 @@ def compare_models(
     candidate_validation: ValidationModels | None = None,
     incumbent_validation: ValidationModels | None = None,
     output: Path | None = None,
+    append_only_context: bool = False,
 ) -> Comparison:
     """Compare mean fold RMSPE, tie-breaking by retaining incumbent; never score final dates."""
     folds = shared_folds(candidate, incumbent, protocol, incumbent_protocol)
@@ -110,7 +153,7 @@ def compare_models(
     if len(folds) < MINIMUM_SHARED_FOLDS and candidate_validation and incumbent_validation:
         if (
             protocol.config != incumbent_protocol.config
-            or protocol.snapshot != incumbent_protocol.snapshot
+            or (protocol.snapshot != incumbent_protocol.snapshot and not append_only_context)
             or protocol.registry_sha256 != incumbent_protocol.registry_sha256
         ):
             raise ValueError(
@@ -162,6 +205,10 @@ def compare_models(
     )
     if builder.context != candidate.metadata.context:
         raise ValueError("Comparison dataset/availability context differs from the saved models")
+    if protocol.snapshot.assumptions != incumbent_protocol.snapshot.assumptions:
+        raise ValueError("Append-only comparison cannot change knowledge assumptions")
+    if append_only_context:
+        factories = tuple(AppendOnlyFactory(factory) for factory in factories)
     predictions = generate_predictions(
         builder,
         folds,

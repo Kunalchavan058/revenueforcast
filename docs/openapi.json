@@ -27,6 +27,368 @@
         }
       }
     },
+    "/api/v1/training-jobs": {
+      "post": {
+        "tags": [
+          "training"
+        ],
+        "summary": "Enqueue Training",
+        "description": "Persist a request immediately; only the separately started worker may train.",
+        "operationId": "enqueue_training_api_v1_training_jobs_post",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrainingJob"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobView"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training-jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "training"
+        ],
+        "summary": "Get Training",
+        "description": "Read durable state, actual stage, heartbeat and bounded attempt summaries.",
+        "operationId": "get_training_api_v1_training_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobView"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training-jobs/{job_id}/cancel": {
+      "post": {
+        "tags": [
+          "training"
+        ],
+        "summary": "Cancel Training",
+        "description": "Cancel only queued work, avoiding unsafe mid-fit or mid-promotion termination.",
+        "operationId": "cancel_training_api_v1_training_jobs__job_id__cancel_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobView"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/retraining-schedule": {
+      "get": {
+        "tags": [
+          "training"
+        ],
+        "summary": "Get Schedule",
+        "description": "Default manual/disabled; configuration never claims the laptop worker is running.",
+        "operationId": "get_schedule_api_v1_retraining_schedule_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "training"
+        ],
+        "summary": "Put Schedule",
+        "description": "Save timezone/calendar recurrence idempotently without executing any training.",
+        "operationId": "put_schedule_api_v1_retraining_schedule_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/datasets/status": {
       "get": {
         "tags": [
@@ -730,6 +1092,88 @@
         "title": "ActivationRequest",
         "description": "Require a generation token and an explicit reason to override missing metric evidence."
       },
+      "AttemptView": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "heartbeat_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Heartbeat At"
+          },
+          "exit_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Code"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "number",
+          "state",
+          "started_at",
+          "completed_at",
+          "heartbeat_at",
+          "exit_code",
+          "summary"
+        ],
+        "title": "AttemptView",
+        "description": "Safe summary of a fenced process attempt; no credentials or unrestricted log content."
+      },
+      "CreateTrainingJob": {
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "xgboost",
+              "lightgbm",
+              "auto"
+            ],
+            "title": "Algorithm"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "algorithm"
+        ],
+        "title": "CreateTrainingJob",
+        "description": "The normal user selects only an algorithm; the service pins data and budgets."
+      },
       "DatasetStatus": {
         "properties": {
           "latest": {
@@ -969,6 +1413,17 @@
           "source_checksum": {
             "type": "string",
             "title": "Source Checksum"
+          },
+          "feature_context_dataset_fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature Context Dataset Fingerprint"
           },
           "source": {
             "type": "string",
@@ -1385,6 +1840,173 @@
         "title": "HistoryCoverage",
         "description": "Observed business-date coverage actually visible to this request, per store."
       },
+      "JobView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "algorithm": {
+            "type": "string",
+            "title": "Algorithm"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "skipped",
+              "cancelled"
+            ],
+            "title": "State"
+          },
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "dataset_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataset Version Id"
+          },
+          "initiated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Initiated At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "heartbeat_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heartbeat At"
+          },
+          "retry_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "title": "Attempt Count"
+          },
+          "max_attempts": {
+            "type": "integer",
+            "title": "Max Attempts"
+          },
+          "model_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version Id"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/AttemptView"
+            },
+            "type": "array",
+            "title": "Attempts"
+          },
+          "lease_expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Expires At"
+          },
+          "worker_heartbeat_stale": {
+            "type": "boolean",
+            "title": "Worker Heartbeat Stale"
+          },
+          "worker_required": {
+            "type": "boolean",
+            "const": true,
+            "title": "Worker Required",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "algorithm",
+          "state",
+          "stage",
+          "message",
+          "dataset_version_id",
+          "initiated_at",
+          "started_at",
+          "completed_at",
+          "heartbeat_at",
+          "retry_after",
+          "attempt_count",
+          "max_attempts",
+          "model_version_id",
+          "attempts",
+          "lease_expires_at",
+          "worker_heartbeat_stale"
+        ],
+        "title": "JobView",
+        "description": "Measured stage/state, not invented percentage progress."
+      },
       "OutputPolicy": {
         "properties": {
           "clip_negative_sales": {
@@ -1552,6 +2174,157 @@
         ],
         "title": "ScenarioPlan",
         "description": "A user-asserted full replacement plan known by the request's information cutoff."
+      },
+      "ScheduleRequest": {
+        "properties": {
+          "cadence": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "weekly",
+              "monthly",
+              "quarterly"
+            ],
+            "title": "Cadence",
+            "default": "manual"
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Timezone",
+            "default": "UTC"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "xgboost",
+              "lightgbm",
+              "auto"
+            ],
+            "title": "Algorithm",
+            "default": "auto"
+          },
+          "anchor_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ScheduleRequest",
+        "description": "Anchor a wall-calendar recurrence in a named IANA timezone; manual is disabled."
+      },
+      "ScheduleView": {
+        "properties": {
+          "cadence": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "weekly",
+              "monthly",
+              "quarterly"
+            ],
+            "title": "Cadence",
+            "default": "manual"
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Timezone",
+            "default": "UTC"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "xgboost",
+              "lightgbm",
+              "auto"
+            ],
+            "title": "Algorithm",
+            "default": "auto"
+          },
+          "anchor_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor At"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "next_run": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run"
+          },
+          "last_check_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Check At"
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "default": "Requires the standalone worker; laptop shutdown or sleep prevents execution."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ScheduleView",
+        "description": "Persisted revision and next due time; enabling a schedule does not start a process."
       },
       "SlotView": {
         "properties": {

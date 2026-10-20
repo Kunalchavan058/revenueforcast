@@ -8,7 +8,7 @@ from typing import Annotated, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from retailforecast.evaluation.contracts import BacktestConfig
+from retailforecast.evaluation.contracts import BacktestConfig, BacktestPlan, Fold
 from retailforecast.features.builder import FeatureRow
 from retailforecast.features.contracts import SnapshotContext
 
@@ -152,3 +152,24 @@ class TrainingRequest(BaseModel):
     backtest: BacktestConfig
     data_config: str
     profile: Literal["synthetic", "rossmann"] = "rossmann"
+
+    validation_plan: BacktestPlan | None = None
+    refit_until: date | None = None
+    protected_holdout: Fold | None = None
+    business_dataset_version_id: str | None = None
+    business_source_checksum: str | None = None
+
+    @model_validator(mode="after")
+    def validate_retraining_policy(self) -> TrainingRequest:
+        """Retain the original validation calendar and protected window for later refits."""
+        if self.refit_until is not None:
+            if self.validation_plan is None or self.protected_holdout is None:
+                raise ValueError(
+                    "Later refits require a fixed validation plan and protected holdout"
+                )
+            if (
+                self.protected_holdout != self.validation_plan.folds[-1]
+                or self.refit_until <= self.protected_holdout.target_end
+            ):
+                raise ValueError("Retraining refit must follow the fixed protected holdout")
+        return self

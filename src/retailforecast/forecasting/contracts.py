@@ -127,6 +127,7 @@ class ForecastData(ApiContract):
     dataset_version_id: str
     dataset_fingerprint: str
     source_checksum: str
+    feature_context_dataset_fingerprint: str | None = None
     source: str
     source_available_through: date
     actual_data_cutoff: date

@@ -118,6 +118,27 @@ def log_scores(tracker: LocalTracker, run_id: str, segments: list[Segment], meth
     tracker.metrics(run_id, values)
 
 
+def refit_history_without_holdout(
+    builder: FeatureBuilder, request: TrainingRequest, cutoff: date
+) -> tuple[TrainingHistory, int]:
+    """Remove protected Sales from targets and all lag/rolling inputs of a later refit.
+
+    Original June 14..July 31 labels remain unavailable to fitting, even when
+    legitimate August observations are appended and the serving cutoff advances.
+    Development cutoffs remain the original pre-holdout dates.
+    """
+    observations = tuple(builder.history_at_cutoff(request.backtest.store_ids, cutoff))
+    safe = observations
+    if request.protected_holdout:
+        protected = request.protected_holdout
+        safe = tuple(
+            row
+            for row in observations
+            if not protected.cutoff_date < row.date <= protected.target_end
+        )
+    return TrainingHistory(cutoff_date=cutoff, observations=safe), len(observations) - len(safe)
+
+
 def execute(request: TrainingRequest, output: Path, *, root: Path = ROOT) -> None:
     """Fit/evaluate every bounded trial, select on development only, and stage a refit model.
 
@@ -136,7 +157,7 @@ def execute(request: TrainingRequest, output: Path, *, root: Path = ROOT) -> Non
     if builder.context is None:
         raise ValueError("Training requires a verified dataset context")
     start, end = historical_span(data_config, request.profile)
-    plan = make_plan(start, end, request.backtest)
+    plan = request.validation_plan or make_plan(start, end, request.backtest)
     protocol = build_protocol(request.backtest, plan, builder.context)
     reserve_holdout(root / "artifacts/evaluation/holdout_locks", protocol)
     tracker = LocalTracker(root / "artifacts/mlflow", output)
@@ -266,10 +287,9 @@ def execute(request: TrainingRequest, output: Path, *, root: Path = ROOT) -> Non
         # Refit only through the reserved final origin (June 13 in this snapshot),
         # not July 31. Holding back final labels is as important as excluding them
         # from hyperparameter selection.
-        refit_cutoff = plan.folds[-1].cutoff_date
-        refit_history = TrainingHistory(
-            cutoff_date=refit_cutoff,
-            observations=tuple(builder.history_at_cutoff(request.backtest.store_ids, refit_cutoff)),
+        refit_cutoff = request.refit_until or plan.folds[-1].cutoff_date
+        refit_history, excluded_count = refit_history_without_holdout(
+            builder, request, refit_cutoff
         )
         refit_data = prepare_training_data(builder, refit_history, settings)
         model = NativeTreeAdapter(winner.algorithm).fit(
@@ -314,6 +334,12 @@ def execute(request: TrainingRequest, output: Path, *, root: Path = ROOT) -> Non
             "trials": [item.model_dump(mode="json") for item in records],
             "comparison_summaries": [item.model_dump(mode="json") for item in comparison.summaries],
             "final_holdout_scored": False,
+            "protected_holdout": request.protected_holdout.model_dump(mode="json")
+            if request.protected_holdout
+            else None,
+            "refit_excluded_observations": excluded_count,
+            "business_dataset_version_id": request.business_dataset_version_id,
+            "business_source_checksum": request.business_source_checksum,
         }
         (output / "training.json").write_bytes(canonical_json(summary))
         tracker.params(

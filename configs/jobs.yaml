@@ -1,0 +1,8 @@
+schema_version: 1
+training_mode: full
+max_attempts: 2
+retry_seconds: 30
+poll_seconds: 2
+heartbeat_seconds: 5
+lease_seconds: 60
+max_schedule_events_per_tick: 100

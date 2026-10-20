@@ -15,9 +15,11 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Engine, select
 from sqlalchemy.dialects.postgresql import insert
 
+from retailforecast.data.lineage import is_descendant
 from retailforecast.data.pipeline_config import content_hash
 from retailforecast.data.validation import file_checksum
 from retailforecast.evaluation.artifacts import EvaluationProtocol, verify_results
+from retailforecast.evaluation.contracts import Fold
 from retailforecast.features.registry import registry_fingerprint
 from retailforecast.lifecycle.comparison import Comparison, compare_models
 from retailforecast.lifecycle.validation import (
@@ -32,6 +34,7 @@ from retailforecast.storage.models import (
     ModelRegistration,
     ModelSlot,
     ModelVersion,
+    TrainingJob,
 )
 from retailforecast.training.adapters import NativeTreeAdapter, TreeModel
 from retailforecast.training.contracts import Algorithm, InternalParameters, Mode, TrainingConfig
@@ -67,6 +70,10 @@ class TrainingRecord(BaseModel):
     trials: tuple[TrialRecord, ...]
     mode: Mode
     training_config: TrainingConfig
+    protected_holdout: Fold | None = None
+    refit_excluded_observations: int = 0
+    business_dataset_version_id: str | None = None
+    business_source_checksum: str | None = None
 
 
 class VersionView(BaseModel):
@@ -166,8 +173,16 @@ class ModelRegistry:
                 for model, registration in pairs
             ]
 
-    def register(self, training_directory: Path) -> str:
+    def register(self, training_directory: Path, *, training_job_id: str | None = None) -> str:
         """Publish a genuine completed run as a non-serving candidate; legacy runs stay intact."""
+        if training_job_id:
+            with self.sessions() as session:
+                existing = session.scalar(
+                    select(ModelVersion.id).where(ModelVersion.training_job_id == training_job_id)
+                )
+                if existing:
+                    self.load(existing)
+                    return existing
         source = training_directory.resolve()
         if json.loads((source / "status.json").read_bytes()).get("state") != "succeeded":
             raise ValueError("Only a successfully completed training job can be registered")
@@ -202,18 +217,48 @@ class ModelRegistry:
         ):
             raise ValueError("Candidate requires complete chronological validation metrics")
         if not any(
-            fold.role == "final" and record.trained_until <= fold.cutoff_date
+            fold.role == "final"
+            and (
+                record.trained_until <= fold.cutoff_date
+                or (
+                    record.protected_holdout == fold
+                    and record.refit_excluded_observations > 0
+                    and record.trained_until > fold.target_end
+                    and training_job_id is not None
+                )
+            )
             for fold in record.protocol.plan.folds
         ):
             raise ValueError("Training must preserve the reserved final holdout")
         with self.sessions() as session:
-            dataset = session.scalar(
-                select(DatasetVersion).where(
-                    DatasetVersion.checksum == record.ingestion_dataset_checksum
+            if record.business_dataset_version_id:
+                job = session.get(TrainingJob, training_job_id) if training_job_id else None
+                dataset = session.get(DatasetVersion, record.business_dataset_version_id)
+                if (
+                    job is None
+                    or job.dataset_version_id != record.business_dataset_version_id
+                    or job.request_context.get("materialized_ingestion_checksum")
+                    != record.ingestion_dataset_checksum
+                    or dataset is None
+                    or dataset.checksum != record.business_source_checksum
+                ):
+                    raise ValueError(
+                        "SQL export binding does not match the durable training request"
+                    )
+            else:
+                dataset = session.scalar(
+                    select(DatasetVersion).where(
+                        DatasetVersion.checksum == record.ingestion_dataset_checksum
+                    )
                 )
-            )
             if dataset is None:
                 raise ValueError("Import this exact validated dataset into PostgreSQL first")
+            if training_job_id:
+                job = session.get(TrainingJob, training_job_id)
+                if job is None or job.dataset_version_id != dataset.id:
+                    raise ValueError(
+                        "Completed training does not belong to this job's pinned dataset"
+                    )
             dataset_id = dataset.id
         version_id = new_id()
         target = self.artifact_root / version_id
@@ -283,6 +328,7 @@ class ModelRegistry:
                     ModelVersion(
                         id=version_id,
                         dataset_version_id=dataset_id,
+                        training_job_id=training_job_id,
                         scope=SCOPE,
                         algorithm=record.resolved_algorithm,
                         trained_until=model.trained_until,
@@ -409,8 +455,23 @@ class ModelRegistry:
             decision = Comparison(eligible=True, improves=True, reason="First validated candidate")
             if incumbent_id is not None:
                 incumbent, incumbent_record = self.load(incumbent_id)
+                incumbent_row = session.get(ModelVersion, incumbent_id)
+                assert incumbent_row is not None
+                append_compatible = row.dataset_version_id != incumbent_row.dataset_version_id and (
+                    is_descendant(session, row.dataset_version_id, incumbent_row.dataset_version_id)
+                    or is_descendant(
+                        session, incumbent_row.dataset_version_id, row.dataset_version_id
+                    )
+                )
                 if (
-                    candidate.metadata.context != incumbent.metadata.context
+                    (
+                        candidate.metadata.context != incumbent.metadata.context
+                        and not append_compatible
+                    )
+                    or candidate.preprocessing.training_context is None
+                    or incumbent.preprocessing.training_context is None
+                    or candidate.preprocessing.training_context.assumptions
+                    != incumbent.preprocessing.training_context.assumptions
                     or candidate.metadata.training_span.store_ids
                     != incumbent.metadata.training_span.store_ids
                     or schema_fingerprint(candidate) != schema_fingerprint(incumbent)
@@ -433,6 +494,7 @@ class ModelRegistry:
                             incumbent_record.protocol,
                             data_config=data_config,
                             profile=profile,
+                            append_only_context=append_compatible,
                             candidate_validation=candidate_validation,
                             incumbent_validation=self.validation_models(
                                 incumbent_id, incumbent, incumbent_record

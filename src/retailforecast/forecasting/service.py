@@ -9,6 +9,7 @@ from threading import BoundedSemaphore
 from pydantic import ValidationError
 from sqlalchemy import select
 
+from retailforecast.data.lineage import latest_descendant
 from retailforecast.data.pipeline_config import content_hash
 from retailforecast.features.contracts import ForecastKey
 from retailforecast.forecasting.contracts import (
@@ -138,10 +139,15 @@ class ForecastService:
             version = session.get(ModelVersion, version_id)
             assert version is not None
             source = session.get(DatasetVersion, version.dataset_version_id)
-            if source is None or source.checksum != record.ingestion_dataset_checksum:
+            if source is None or source.checksum != (
+                record.business_source_checksum or record.ingestion_dataset_checksum
+            ):
                 raise ForecastError(
                     "dataset_incompatible", "Model and imported dataset lineage do not match", 409
                 )
+            # An explicitly validated append-only descendant adds fresh observed
+            # history without fitting new weights or changing saved preprocessing.
+            source = latest_descendant(session, source.id)
             latest_knowledge_date = source.available_through + timedelta(
                 days=record.protocol.config.assumptions.sales_delay_days
             )
@@ -255,7 +261,12 @@ class ForecastService:
             ),
             data=ForecastData(
                 dataset_version_id=source.id,
-                dataset_fingerprint=record.protocol.snapshot.dataset_fingerprint,
+                dataset_fingerprint=source.version
+                if record.business_dataset_version_id
+                or source.checksum
+                != (record.business_source_checksum or record.ingestion_dataset_checksum)
+                else record.protocol.snapshot.dataset_fingerprint,
+                feature_context_dataset_fingerprint=record.protocol.snapshot.dataset_fingerprint,
                 source_checksum=source.checksum,
                 source=source.source,
                 source_available_through=source.available_through,
