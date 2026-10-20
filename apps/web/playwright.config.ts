@@ -15,6 +15,7 @@ const webUrl = `http://127.0.0.1:${webPort}`;
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
+  expect: { timeout: process.env.PLAYWRIGHT_DEV === "1" ? 15000 : 5000 },
   workers: 1,
   use: {
     baseURL: webUrl,
@@ -30,10 +31,10 @@ export default defineConfig({
       timeout: 60000,
     },
     {
-      command: `npm run start -- --hostname 127.0.0.1 --port ${webPort}`,
+      command: `npm run ${process.env.PLAYWRIGHT_DEV === "1" ? "dev" : "start"} -- --hostname 127.0.0.1 --port ${webPort}`,
       url: webUrl,
-      reuseExistingServer: false,
-      timeout: 60000,
+      reuseExistingServer: process.env.PLAYWRIGHT_REUSE_WEB === "1",
+      timeout: process.env.PLAYWRIGHT_DEV === "1" ? 180000 : 60000,
     },
   ],
 });

@@ -7,6 +7,7 @@ import globals from "globals";
 export default defineConfig([
   globalIgnores([
     ".next/**",
+    ".next-browser/**",
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",

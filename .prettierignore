@@ -13,3 +13,5 @@ apps/web/next-env.d.ts
 .tools
 
 dvc.lock
+
+.next-browser

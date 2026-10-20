@@ -75,3 +75,6 @@ Desktop.ini
 !/data/raw/.gitignore
 *.parquet
 .dvc/config.local
+
+# Isolated development-browser verification output.
+.next-browser/
