@@ -114,3 +114,17 @@ The native bundle hash seals its file manifest; registration evidence additional
 | forecast_points.nonnegative_clamped / closure_adjusted | Whether evaluated nonnegative / explicit-known-closure policies adjusted this point |
 
 Source and engineered fields remain distinct. Daily/weekly/monthly totals derive from rounded point values, not additional model targets or database copies. Historical cutoff and generation timestamp have different meanings. CSV repeats frozen run metadata for portable store-day rows. See API_CONTRACT.md and frozen migration a10f0c03b002; old rows with empty context cannot claim current reproducibility metadata.
+
+## Phase 11 operational and additional-observation fields
+
+| Entity | Added meaning |
+|---|---|
+| dataset_lineage | child dataset FK, parent FK, additional raw-file checksum, operator provenance and synthetic flag; application-published chains preserve all existing metadata/history |
+| dataset_versions child | immutable copied history plus validated later actuals; compound checksum/version binds parent and new file report; raw_uri points to preserved additional CSV |
+| training_jobs | nullable source FK for no-data missed checks; algorithm, six-state status, canonical trigger key/public request hash, pinned backend/data context, stage/message, counts/retry time, heartbeat, timestamps, result model reference |
+| training_attempts | job/attempt unique identity, opaque owner token, state/times, actual process PID/creation time, owned output path, exit code and safe log summary |
+| retraining_schedules | existing manual/weekly/monthly/quarterly intent plus UTC anchor, revision, selected algorithm and last_check_at; next_run advances with unique due audit |
+| model_versions.training_job_id | at most one published version per non-null job, enabling idempotent restart recovery |
+| forecast data.feature_context_dataset_fingerprint | saved feature context, separately exposing observed append-only source identity/checksum/history coverage |
+
+Job state is distinct from model role: succeeded training can leave a candidate rejected or pending while the incumbent stays active. Skipped does not create a training attempt or model version. File materialization retains exact raw/Parquet hashes and binds its export checksum back to the pinned business source/job; PostgreSQL still contains no serialized model bytes. SQL snapshot exports may legitimately contain empty remaining test/template tables after their dates become actual; no future row or label is fabricated. Original competition four-file import remains strict. Full operator contracts and protected-history fitting policy are in TRAINING_JOBS.md.

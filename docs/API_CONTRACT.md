@@ -1,6 +1,6 @@
 # Forecast API contract
 
-Phase 10 implements local prediction and persisted exports. Start PostgreSQL, apply migrations, import a dataset and activate a validated saved model first. Forecasting never launches training. The web page remains a health screen; use the API's Swagger UI at http://127.0.0.1:8000/docs. This is historical Rossmann data, not a current sales feed.
+Phase 10 implements local prediction and persisted exports. Start PostgreSQL, apply migrations, import a dataset and activate a validated saved model first. Forecasting never launches training. The home page now includes training onboarding; forecast visualization remains deferred; use the API's Swagger UI at http://127.0.0.1:8000/docs. This is historical Rossmann data, not a current sales feed.
 
 ## Start and inspect
 
@@ -108,3 +108,7 @@ Supported cutoffs span model training date through latest source label date plus
 At most 32 distinct stores and 48 days are allowed; unknown or unsupported stores fail instead of silent fallback. One prediction runs at a time per API process, with a retryable busy response. Use one local API process; this is not a distributed inference queue. Native bundles are revalidated/reloaded per POST rather than cached, favoring integrity and transparent switching over minimum latency. There is no automatic stale-data extrapolation to today's date, retraining, inferred plan generation or forecast deduplication. Repeated identical POSTs save different run IDs/timestamps with identical values and input fingerprint.
 
 One explicit SQL transaction commits context and every point after prediction and complete response validation. Failure rolls back the whole run. The source is an immutable imported snapshot, not a live editable stream. Forecast metadata freezes actual feature-input hashes and availability context but does not copy the entire training dataset into each report. Back up business tables, DVC data and native artifacts together. Legacy forecast rows without phase-10 provenance return a 409 rather than fabricated metadata.
+
+## Phase 11 additions
+
+TRAINING_JOBS.md defines POST/GET training-jobs, queued cancellation and GET/PUT retraining-schedule contracts. Only the standalone worker trains. Forecast requests can now follow validated append-only descendants to use fresh observed actuals, while keeping the saved model/preprocessing/schema/knowledge context. `data.dataset_version_id`, source checksum/date and per-store coverage identify the observed snapshot; `feature_context_dataset_fingerprint` identifies the saved model context. Unrelated latest imports are never selected implicitly. Historical warnings and all cutoff gates still apply. The Phase 10 example response is retained as the historical verification snapshot; the generated OpenAPI includes these additive contracts.

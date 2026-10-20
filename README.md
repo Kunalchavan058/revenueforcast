@@ -1,6 +1,6 @@
 # RetailForecast AI
 
-A local-first retail forecasting application in development. **Phase 10 adds saved-model forecast APIs, persisted daily results, exact totals and CSV downloads.** The web app still shows API connection health only; forecast charts and scheduling remain future work. Training and evaluation use host-side CLIs. Historical 2015 records are not live data.
+A local-first retail forecasting application in development. **Phase 11 adds durable background training, optional local recurring checks and explicit additional-actuals imports.** The home page offers honest first-model/candidate onboarding. Forecast APIs provide saved-model predictions, totals and CSV; forecast charts remain future work. Historical 2015 records are not live data.
 
 ## Required tools
 
@@ -185,3 +185,15 @@ The corrected workflow is verified in [VALIDATION_FIX_REPORT.md](docs/VALIDATION
 ```
 
 The existing active model covers stores 1,2,3. Every request reuses verified weights/preprocessing and only history available by its cutoff; it never trains. GET `/api/v1/forecasts/{forecast_id}` and its `/download.csv` return saved values. Daily/week/month totals sum rounded store-day values. Future plans are unknown unless explicitly supported and supplied. The browser still has no forecasting page. See [PHASE_10_REPORT.md](docs/PHASE_10_REPORT.md) for actual checks and scope.
+
+## Phase 11 - Background training and optional recurrence
+
+Start the optional worker in another terminal after PostgreSQL, migrations and API/web:
+
+```text
+uv run --locked python -m retailforecast.lifecycle.job_worker
+```
+
+POST `/api/v1/training-jobs` with `{"algorithm":"auto"}` enqueues without blocking on fitting. GET `/api/v1/training-jobs/{id}` inspects actual stages/attempts. GET/PUT `/api/v1/retraining-schedule` defaults to manual/disabled; an enabled schedule still needs this worker and an awake laptop. No new labeled data means a recorded skip, not a new model. Existing forecasts keep using the incumbent while a candidate trains.
+
+[TRAINING_JOBS.md](docs/TRAINING_JOBS.md) provides PowerShell/bash examples, the operator `import_actuals` CSV contract, restart/idempotency and timezone rules. Validated new actuals can refresh forecast history without retraining; fixed-window candidate evaluation and model activation are separate. See [PHASE_11_REPORT.md](docs/PHASE_11_REPORT.md) for verification and limits.

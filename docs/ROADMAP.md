@@ -18,9 +18,9 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] Forecast feature availability and information-cutoff tests (Phase 6).
 - [x] Rolling-origin evaluation, deterministic baselines and reproducible score artifacts (Phase 7).
 - [x] CPU XGBoost/LightGBM/Auto training, bounded tuning and local MLflow (Phase 8).
-- [x] Model registry/active-model reuse and forecast API/persistence (Phases 9-10); durable job execution remains deferred.
+- [x] Model registry/active-model reuse and forecast API/persistence (Phases 9-10).
 - [ ] Forecast UI, explanations, exports, and run/version history.
-- [ ] Explicit new-label ingestion and optional local retraining schedules.
+- [x] Durable training jobs, explicit new-label ingestion, minimal training onboarding and optional local schedules (Phase 11).
 - [ ] End-to-end acceptance, resource checks, demo, and portfolio documentation.
 
 ## Phase 2 â€” Architecture and visual explanations
@@ -144,3 +144,19 @@ Only the current user-authorized phase may be implemented. Later phases below ar
 - [x] API guide, generated schemas, actual response, decision, standards, architecture/data contracts, report and journal updated.
 - [x] Final holdout remains unscored; no raw CSV/model/secret publication and no commit/push.
 - [x] Stop before forecast UI, durable training jobs, scheduling, cross-lineage adoption or final release.
+
+## Phase 11 - Durable training jobs and optional local retraining
+
+- [x] Typed nonblocking enqueue/status/queued-cancel APIs and six-state durable queue.
+- [x] One standalone scheduler/worker, one-running constraint, fenced owned children, heartbeat, restart recovery and bounded attempts.
+- [x] Idempotent manual/weekly/monthly/quarterly schedules with timezone/calendar anchors and audited downtime coalescing.
+- [x] Unchanged-source watermark guard records a skip without fitting or creating a model version.
+- [x] Validated append-only observed-actuals CLI with provenance, transactional child publication, idempotency and rollback.
+- [x] Fresh forecasts follow only certified descendants while retaining active weights and cutoff-safe saved feature context.
+- [x] Later fits exclude the complete protected final interval from fitting history and reuse controlled development windows.
+- [x] Checked candidate publication/promotion remains independent of job success; incumbent forecasts survive failed training.
+- [x] Honest no-model/queued/active/offline onboarding; browser polling reads status only.
+- [x] Real PostgreSQL/native tests, complete 186-case Python suite, frontend/component/browser/build and static quality checks.
+- [x] Migration head/schema verified; original real source, model pointer and final-holdout reservation preserved.
+- [x] Operator guide, current contracts/diagrams, decision 0013 and Phase 11 report/log updated.
+- [x] Stop before full forecast/settings UI, schedule-performance replay, unrelated-lineage migration or final release; no commit/push.

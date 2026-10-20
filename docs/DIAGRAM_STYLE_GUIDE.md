@@ -15,7 +15,7 @@ Diagrams should tell the same story as the text. Labels carry meaning even when 
 Use light fills, dark borders, and dark text. Always label Active, Prohibited, Approve, or other meaning explicitly; color is never the only signal. Shapes/dashed edges may reinforce but not replace labels. A database containing Data can be blue even though its host is infrastructure. Feature-building operations are violet; observations are blue. Retained inactive lifecycle history uses gray.
 
 ## Mermaid rules
-Use fenced mermaid source embedded in Markdown with GitHub-supported flowchart/state syntax. No scripts, external images, click handlers, or HTML labels. Use LR for journeys/timelines and TB for ownership. Aim for about 10 substantive nodes; split crowded diagrams. D5 has eight leaf states in two named regions. Keep labels short and qualifications below the chart. Label meaningful arrows with action verbs; initial/final markers may be implicit.
+Use fenced mermaid source embedded in Markdown with GitHub-supported flowchart/state syntax. No scripts, external images, click handlers, or HTML labels. Use LR for journeys/timelines and TB for ownership. Aim for about 10 substantive nodes; split crowded diagrams. D5 has ten leaf states across durable jobs and serving approval. Keep labels short and qualifications below the chart. Label meaningful arrows with action verbs; initial/final markers may be implicit.
 
 Vocabulary must agree across pages: Data, Features, Train, Evaluate, Approve, Predict. Separate attempt status from approval roles. Explain whether arrows represent control, movement, or version roles. Immediately below each chart include a plain-English story, numbered steps, inputs, outputs, and errors. State concurrency and omitted dependencies. Dates/horizons may be illustrative; never invent observed accuracy or performance numbers.
 
@@ -26,6 +26,7 @@ Vocabulary must agree across pages: Data, Features, Train, Evaluate, Approve, Pr
 | D2 | ARCHITECTURE.md | owners, storage, labeled actions |
 | D3 | DATA_FLOW.md | validation, temporal Features, Train, Evaluate |
 | D4 | DATA_FLOW.md | July 31 to August 7 direct forecast |
-| D5 | MODEL_LIFECYCLE.md | separate attempts/approvals, archive and rollback |
+| D5 | MODEL_LIFECYCLE.md | separate job/approval states, retries, archive and rollback |
+| D6 | TRAINING_JOBS.md | fresh observations, standalone checks and incumbent continuity |
 
-Review branch reachability, action labels, leakage boundaries, active-model continuity, and persistence ownership. If Mermaid CLI is already installed, render all five sources and inspect them. Do not install tooling in a documentation-only phase. Otherwise record static review and explicitly disclose unverified rendering. No rendered images are claimed for this phase.
+Review branch reachability, action labels, leakage boundaries, active-model continuity, and persistence ownership. If Mermaid CLI is already installed, render all available sources and inspect them. Do not install tooling in a documentation-only phase. Otherwise record static review and explicitly disclose unverified rendering. No rendered images are claimed for this phase.
