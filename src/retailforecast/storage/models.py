@@ -171,7 +171,7 @@ class TrainingJob(Base):
 
 
 class ModelVersion(Base):
-    """Future artifact references and scope-scoped approval; never serialized bytes."""
+    """Versioned artifact references and scope-scoped approval; never serialized bytes."""
 
     __tablename__ = "model_versions"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -253,3 +253,40 @@ class RetrainingSchedule(Base):
             name="cadence",
         ),
     )
+
+
+class ModelRegistration(Base):
+    """Seal immutable bundles and link app versions to distinct MLflow registry versions."""
+
+    __tablename__ = "model_registrations"
+    model_version_id: Mapped[str] = mapped_column(ForeignKey("model_versions.id"), primary_key=True)
+    bundle_sha256: Mapped[str] = mapped_column(String(64))
+    dataset_fingerprint: Mapped[str] = mapped_column(String(64))
+    mlflow_model_name: Mapped[str] = mapped_column(String(255))
+    mlflow_model_version: Mapped[str] = mapped_column(String(80))
+    evidence: Mapped[dict[str, object]] = mapped_column(JSON)
+    approval_required: Mapped[bool] = mapped_column(Boolean, default=False)
+    decision_reason: Mapped[str | None] = mapped_column(Text)
+
+
+class ModelSlot(Base):
+    """Authoritative generation-checked serving pointer; MLflow is never the serving lock."""
+
+    __tablename__ = "model_slots"
+    scope: Mapped[str] = mapped_column(String(255), primary_key=True)
+    active_model_version_id: Mapped[str | None] = mapped_column(ForeignKey("model_versions.id"))
+    generation: Mapped[int] = mapped_column(Integer, default=0)
+    __table_args__ = (CheckConstraint("generation >= 0", name="generation"),)
+
+
+class ModelEvent(Base):
+    """Append-only decision audit written in the same transaction as the serving pointer."""
+
+    __tablename__ = "model_events"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    model_version_id: Mapped[str] = mapped_column(ForeignKey("model_versions.id"))
+    previous_model_version_id: Mapped[str | None] = mapped_column(ForeignKey("model_versions.id"))
+    generation: Mapped[int] = mapped_column(Integer)
+    action: Mapped[str] = mapped_column(String(30))
+    reason: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

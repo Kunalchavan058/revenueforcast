@@ -1,8 +1,9 @@
-"""FastAPI service entry point; forecasting and storage are not implemented."""
+"""FastAPI liveness and checked local model lifecycle endpoints."""
 
 from typing import Literal
 
 from fastapi import FastAPI
+from models import router as models_router
 from pydantic import BaseModel
 
 
@@ -23,6 +24,7 @@ def create_app() -> FastAPI:
         """Return process liveness; no database, dataset, or model is required."""
         return HealthResponse(status="ok", service="retailforecast-api", api_version="v1")
 
+    application.include_router(models_router)
     return application
 
 

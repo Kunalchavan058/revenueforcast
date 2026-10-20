@@ -1,1 +1,1 @@
-"""Reserved lifecycle boundary; no implementation in the scaffold phase."""
+"""Verified model publication, fair comparison and transactional serving lifecycle."""
